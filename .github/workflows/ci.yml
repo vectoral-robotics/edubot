@@ -37,6 +37,7 @@ jobs:
       - name: Validate repos manifest
         run: |
           pipx install vcstool
+          pipx inject vcstool setuptools   # vcstool imports pkg_resources
           vcs validate < edubot.repos
 
   commitlint:
