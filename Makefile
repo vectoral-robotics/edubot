@@ -1,7 +1,8 @@
 # EduBot meta-repo — single entry point for development and deployment.
 #
-#   make src        clone/refresh all package repos into ./src (incl. firmware)
+#   make src        clone/refresh ROS packages into ./src and dev repos into ./dev
 #   make dev        run the ROS 2 core built live from ./src (developer loop)
+#   make login      log in to GHCR for private image pulls (once per robot)
 #   make up         run the fleet stack from pre-built GHCR images
 #   make pull       pull the latest images for the current channel
 #   make update     pull + restart the fleet stack (on-robot OTA update)
@@ -11,7 +12,10 @@
 #   make flash-setup  install arduino-cli + the ESP32 core (once per machine)
 
 SHELL := /bin/bash
+# Core ROS 2 workspace (colcon). Dev-only, non-ROS repos (firmware) go in DEV_DIR
+# so they never leak into the reproducible lockfile or the fleet image.
 SRC_DIR := src
+DEV_DIR := dev
 
 # Fleet stack channel: stable (default) | dev | vX.Y.Z
 CHANNEL ?= stable
@@ -29,22 +33,27 @@ help:
 
 # ---- Source management (vcstool) ------------------------------------------
 .PHONY: src
-src: ## Import/refresh all repos into ./src
-	@mkdir -p $(SRC_DIR)
+src: ## Import ROS packages into ./src and dev repos into ./dev
+	@mkdir -p $(SRC_DIR) $(DEV_DIR)
 	vcs import $(SRC_DIR) < edubot.repos
-	vcs import $(SRC_DIR) < edubot.dev.repos
-	@echo "[edubot] src/ ready. Each repo is a full git checkout — branch/push freely."
+	vcs import $(DEV_DIR) < edubot.dev.repos
+	@echo "[edubot] src/ (ROS core) + dev/ (firmware) ready — full git checkouts."
 
 .PHONY: status
-status: ## Show git status across all src repos
+status: ## Show git status across all checked-out repos
 	@vcs status $(SRC_DIR)
+	@test -d $(DEV_DIR) && vcs status $(DEV_DIR) || true
 
 .PHONY: pull-src
-pull-src: ## git pull across all src repos (fast-forward)
+pull-src: ## git pull across all checked-out repos (fast-forward)
 	@vcs pull $(SRC_DIR)
+	@test -d $(DEV_DIR) && vcs pull $(DEV_DIR) || true
 
 .PHONY: freeze
 freeze: ## Freeze current src commits into edubot.lock.repos
+	@test -d $(SRC_DIR) && [ -n "$$(ls -A $(SRC_DIR) 2>/dev/null)" ] \
+		|| { echo "src/ is empty — run 'make src' first"; exit 1; }
+	@# Only the ROS core (src/) is frozen — dev/ (firmware) is intentionally excluded.
 	@vcs export --exact $(SRC_DIR) > edubot.lock.repos
 	@echo "[edubot] wrote edubot.lock.repos (pinned commits)."
 
@@ -59,6 +68,10 @@ dev-down:
 	docker compose -f $(DEV_COMPOSE) down
 
 # ---- Fleet (pre-built images) ---------------------------------------------
+.PHONY: login
+login: ## Log in to GHCR (once per robot; pull-only token)
+	./scripts/ghcr-login.sh
+
 .PHONY: up
 up: ## Run the fleet stack from GHCR images
 	EDUBOT_CHANNEL=$(CHANNEL) docker compose -f $(FLEET_COMPOSE) up -d
@@ -78,9 +91,9 @@ update: ## OTA update: pull + restart the fleet stack
 # ---- Firmware -------------------------------------------------------------
 .PHONY: flash
 flash: ## Flash the ESP32-S3 with SKETCH (default EduBot_PI_Control_v2)
-	@test -x $(SRC_DIR)/edubot_firmware/tools/flash.sh \
+	@test -x $(DEV_DIR)/edubot_firmware/tools/flash.sh \
 		|| { echo "firmware not found — run 'make src' first"; exit 1; }
-	$(SRC_DIR)/edubot_firmware/tools/flash.sh $(SKETCH) $(FLASH_ARGS)
+	$(DEV_DIR)/edubot_firmware/tools/flash.sh $(SKETCH) $(FLASH_ARGS)
 
 .PHONY: flash-setup
 flash-setup: ## Install arduino-cli + the ESP32 core (once per machine)

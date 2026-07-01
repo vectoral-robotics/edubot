@@ -19,7 +19,7 @@ semver tags.
 ```bash
 git clone https://github.com/vectoral-robotics/edubot.git
 cd edubot
-make src        # clones every package repo into ./src (incl. private firmware)
+make src        # ROS packages -> ./src, dev repos (firmware) -> ./dev
 make dev        # builds the ROS 2 core live from ./src and runs it
 ```
 
@@ -52,13 +52,23 @@ A delivered robot runs the image-based stack:
 
 ```bash
 cp .env.example .env                    # set EDUBOT_CHANNEL, ROS_DOMAIN_ID, ...
+make login                              # once per robot — private image pull (see below)
 make up                                 # pull + start (channel: stable)
 make update                             # OTA update: pull + restart + health check
 ```
 
 Images live on GHCR (`ghcr.io/vectoral-robotics/…`) with channel tags
-`:stable`, `:dev` and immutable `:vX.Y.Z`. Private images need a pull-only login
-(`docker login ghcr.io`) on the robot.
+`:stable`, `:dev` and immutable `:vX.Y.Z`. Public ROS images pull without auth;
+private images (dashboard, flasher) need a one-time login with a **pull-only**
+credential (a fine-grained PAT / GitHub App token, scope `read:packages`):
+
+```bash
+# token in a root-owned file (recommended), then:
+make login
+# or inline: GHCR_TOKEN=… GHCR_USER=edubot-bot make login
+```
+
+See [RELEASING.md](RELEASING.md) for how versioned releases are cut.
 
 ## Versioning
 

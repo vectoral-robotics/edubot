@@ -1,4 +1,6 @@
-# EduBot developer-only repos — imported ON TOP of edubot.repos by `make src`.
+# EduBot developer-only repos — imported into ./dev by `make src` (kept out of
+# ./src so they never enter the colcon workspace, the lockfile, or the fleet
+# image).
 #
 # These are NOT part of the colcon core workspace and are NOT shipped to the
 # fleet as source. They are here so a developer / dev robot gets everything with

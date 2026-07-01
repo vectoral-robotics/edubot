@@ -1,5 +1,6 @@
 # Imported package repos — never committed into the meta-repo.
 /src/
+/dev/
 
 # Manifest staged by CI for the image build.
 .build.repos

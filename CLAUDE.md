@@ -12,8 +12,11 @@ separate package repos; it holds almost no code of its own.
   `freeze`, `flash`).
 - `docker/` — the ROS 2 developer image; `scripts/` — on-robot update.
 
-`./src` is imported by `make src` and is git-ignored — never commit it. The
-repos under it are independent checkouts; work happens inside them, not here.
+`make src` imports the ROS core into `./src` and dev-only repos (firmware) into
+`./dev`; both are git-ignored — never commit them. The repos under them are
+independent checkouts; work happens inside them, not here. Firmware is kept out
+of `./src` so it never enters the colcon workspace, the lockfile, or the fleet
+image.
 
 ## Conventions
 
