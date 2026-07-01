@@ -1,0 +1,48 @@
+# edubot (meta-repo) — Claude guidelines
+
+The single entry point for developing and deploying EduBot. It orchestrates the
+separate package repos; it holds almost no code of its own.
+
+## What lives here
+
+- `edubot.repos` / `edubot.dev.repos` / `edubot.lock.repos` — vcstool manifests.
+- `docker-compose.dev.yaml` (build from `./src`) and `docker-compose.yaml`
+  (pre-built GHCR images). One robot runs one or the other.
+- `Makefile` — the user-facing commands (`src`, `dev`, `up`, `pull`, `update`,
+  `freeze`, `flash`).
+- `docker/` — the ROS 2 developer image; `scripts/` — on-robot update.
+
+`./src` is imported by `make src` and is git-ignored — never commit it. The
+repos under it are independent checkouts; work happens inside them, not here.
+
+## Conventions
+
+- **English everywhere** (code, comments, docs, commits).
+- **Conventional Commits**, scope = area (e.g. `feat(compose): …`,
+  `docs(readme): …`, `chore(makefile): …`).
+- **Maintainer/contact:** Vectoral, info@vectoral.ch.
+- **License:** PolyForm Perimeter 1.0.0 (this meta-repo is source-available; the
+  firmware it references is private/proprietary).
+
+## Two audiences, two mechanisms
+
+- **Developers** build from source (`make dev`), switch branches per repo.
+- **Fleet** pulls versioned images (`make up` / `make update`); channels
+  `stable`/`dev`/`vX.Y.Z`. Private images = pull-only GHCR token on the robot.
+
+Never conflate the two — source-private repos still deploy fine, because the
+robot only ever needs images + a tiny compose/env bundle, not source.
+
+## Versioning
+
+Component (per-repo semver tags) → image (built from a lockfile) → product (a
+tag on this repo; `edubot.lock.repos` is the bill-of-materials). `make freeze`
+records the current `src/` commits into the lockfile for a release.
+
+## Firmware
+
+`edubot_firmware` is private and NOT a colcon package. It is imported via
+`edubot.dev.repos` for developers only. Delivery-standard sketch is
+`EduBot_PI_Control_v2`. `make flash` wraps its `tools/flash.sh`. Fleet reflash
+is done by a private `edubot-flasher` image (later phase), not by shipping
+source.
