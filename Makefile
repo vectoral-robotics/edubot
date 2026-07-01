@@ -8,7 +8,8 @@
 #   make update     pull + restart the fleet stack (on-robot OTA update)
 #   make freeze     write current src commits to edubot.lock.repos (release)
 #   make status     git status across all src repos
-#   make flash      (re)flash the ESP32-S3 with SKETCH (default PI_Control_v2)
+#   make flash      (re)flash the ESP32-S3 from source with SKETCH (dev)
+#   make flash-fleet  reflash the ESP32-S3 from the edubot-flasher image (fleet)
 #   make flash-setup  install arduino-cli + the ESP32 core (once per machine)
 
 SHELL := /bin/bash
@@ -87,6 +88,11 @@ pull: ## Pull latest images for the current channel
 .PHONY: update
 update: ## OTA update: pull + restart the fleet stack
 	EDUBOT_CHANNEL=$(CHANNEL) ./scripts/update.sh
+
+.PHONY: flash-fleet
+flash-fleet: ## Reflash the ESP32-S3 from the edubot-flasher image (no source)
+	EDUBOT_CHANNEL=$(CHANNEL) docker compose -f $(FLEET_COMPOSE) \
+		--profile flash run --rm flasher
 
 # ---- Firmware -------------------------------------------------------------
 .PHONY: flash

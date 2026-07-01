@@ -48,15 +48,20 @@ services:
       - edubot_settings:/settings
       - /var/run/docker.sock:/var/run/docker.sock
 
-  # Firmware (re)flasher — private image (arduino-cli + ESP32 core + compiled
-  # .bin). Invoked on demand by the dashboard to reflash the ESP32-S3; not a
-  # long-running service. Wired in at Phase 5.
-  # flasher:
-  #   image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-flasher:${EDUBOT_CHANNEL:-stable}
-  #   profiles: ["flash"]
-  #   privileged: true
-  #   volumes:
-  #     - /dev:/dev
+  # Firmware (re)flasher — private image (arduino-cli + ESP32 core + the
+  # compiled delivery sketch). On-demand, not a long-running service: the
+  # "flash" profile keeps it out of `up`; run it with `make flash-fleet`
+  # (or from the dashboard). Reflashes the ESP32-S3 over serial.
+  flasher:
+    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-flasher:${EDUBOT_CHANNEL:-stable}
+    container_name: edubot_flasher
+    profiles: ["flash"]
+    privileged: true
+    restart: "no"
+    environment:
+      - PORT=${EDUBOT_ESP32_PORT:-}
+    volumes:
+      - /dev:/dev
 
 volumes:
   edubot_state:
