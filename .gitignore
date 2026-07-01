@@ -1,6 +1,9 @@
 # Imported package repos — never committed into the meta-repo.
 /src/
 
+# Manifest staged by CI for the image build.
+.build.repos
+
 # Local env + colcon artifacts (if built on host).
 .env
 /build/
