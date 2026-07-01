@@ -1,0 +1,11 @@
+# Imported package repos — never committed into the meta-repo.
+/src/
+
+# Local env + colcon artifacts (if built on host).
+.env
+/build/
+/install/
+/log/
+
+# OS / editor
+.DS_Store

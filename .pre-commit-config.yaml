@@ -1,0 +1,35 @@
+# Pre-commit hooks for the EduBot meta-repo — stack-agnostic hygiene, a shell
+# linter and a secret guard (this repo carries deployment .env secrets).
+# Install once after cloning (no uv project here; use uvx to get pre-commit):
+#   uvx pre-commit install --install-hooks
+#   uvx pre-commit install --hook-type commit-msg
+minimum_pre_commit_version: "3.5.0"
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: detect-private-key
+
+  # Lint the shell scripts (update.sh, dev entrypoint, and any tooling).
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+
+  # Secret guard: .env is gitignored; gitleaks catches keys/tokens that slip in.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  # Enforce Conventional Commits on the commit message.
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.16.3
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]

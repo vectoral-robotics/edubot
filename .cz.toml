@@ -1,0 +1,11 @@
+# Commitizen config (standalone — this repo has no pyproject.toml).
+# Run via uvx, e.g.:  uvx --from commitizen cz check ...  /  uvx ... cz bump
+#
+# This is the PRODUCT version: a tag on the meta-repo denotes an EduBot release,
+# whose bill-of-materials is edubot.lock.repos at that tag (see README).
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+major_version_zero = true
+update_changelog_on_bump = true
