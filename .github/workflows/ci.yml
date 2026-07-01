@@ -32,13 +32,28 @@ jobs:
       - name: Validate compose (fleet)
         run: EDUBOT_CHANNEL=stable docker compose -f docker-compose.yaml config >/dev/null
 
-      # The public vcstool manifest must be valid (dev manifest points at a
-      # private repo and needs a token, so it is not network-validated in CI).
-      - name: Validate repos manifest
+      # Structurally validate the vcstool manifests (no network — the dev
+      # manifest points at a private repo, and this only needs to catch
+      # malformed entries, not reach the remotes).
+      - name: Validate repos manifests
         run: |
-          pipx install vcstool
-          pipx inject vcstool setuptools   # vcstool imports pkg_resources
-          vcs validate < edubot.repos
+          python3 -m pip install --quiet pyyaml
+          python3 - <<'PY'
+          import yaml, sys
+          ok = True
+          for path in ("edubot.repos", "edubot.dev.repos"):
+              data = yaml.safe_load(open(path)) or {}
+              repos = data.get("repositories") or {}
+              if not repos:
+                  print(f"{path}: no repositories"); ok = False; continue
+              for name, spec in repos.items():
+                  if (spec or {}).get("type") != "git":
+                      print(f"{path}:{name}: type must be git"); ok = False
+                  if not (spec or {}).get("url"):
+                      print(f"{path}:{name}: missing url"); ok = False
+              print(f"{path}: {len(repos)} repositories OK")
+          sys.exit(0 if ok else 1)
+          PY
 
   commitlint:
     name: Conventional commits
