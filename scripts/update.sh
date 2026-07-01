@@ -15,11 +15,10 @@ echo "[update] channel: ${CHANNEL}"
 # Record the currently running image ids so we can report/rollback.
 before="$(docker compose -f "$COMPOSE_FILE" images -q 2>/dev/null || true)"
 
-echo "[update] pulling images..."
-EDUBOT_CHANNEL="$CHANNEL" docker compose -f "$COMPOSE_FILE" pull
-
-echo "[update] restarting stack..."
-EDUBOT_CHANNEL="$CHANNEL" docker compose -f "$COMPOSE_FILE" up -d
+echo "[update] pulling images and rebuilding on-robot containers..."
+# Hybrid stack: `--pull always` refreshes the pulled images (edubot/dashboard/
+# flasher), `--build` rebuilds the on-robot ones (dev/rviz/web_video_server).
+EDUBOT_CHANNEL="$CHANNEL" docker compose -f "$COMPOSE_FILE" up -d --build --pull always
 
 # Give services a moment, then a shallow health check on the dashboard.
 sleep 5

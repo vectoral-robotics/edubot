@@ -1,10 +1,11 @@
-# EduBot — FLEET stack (pre-built images from GHCR).
+# EduBot — FLEET stack (hybrid: pulled images + on-robot builds).
 #
-# This is what a delivered robot runs. The robot clones THIS meta-repo (small:
-# compose + config, no source build), which is bind-mounted as /edubot; the
-# containers are pulled from GHCR. Same mounts/config as the old dashboard
-# workspace compose — the dashboard is just one container here and reads its
-# config from the mounted /edubot (no app changes, nothing baked in).
+# This is what a delivered robot runs. The robot clones THIS meta-repo (bind-
+# mounted as /edubot). Pulled images: edubot (ros2, reproducible from lockfile),
+# dashboard and flasher (their source is not on the robot). Built on the robot
+# from this repo: dev/code-server, rviz, web_video_server (public ROS sources
+# only). Same mounts/config as the old dashboard workspace compose — the
+# dashboard is just one container and reads its config from the mounted /edubot.
 #
 # Update = `make update` (pull + restart); roll back by pinning EDUBOT_CHANNEL
 # to a previous vX.Y.Z. Images are public → no login needed.
@@ -36,8 +37,13 @@ services:
       - edubot_settings:/settings
       - /dev:/dev
 
+  # Support containers (dev/code-server, rviz, web_video_server) build on the
+  # robot from this repo — they only need public ROS packages, so no registry
+  # image is warranted. The reproducibility-critical / private-source services
+  # (edubot, dashboard, flasher) are pulled as images.
   dev:
-    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-dev:${EDUBOT_CHANNEL:-stable}
+    build:
+      context: containers/dev
     container_name: edubot_dev
     network_mode: host
     ipc: host
@@ -56,7 +62,9 @@ services:
       - /dev:/dev
 
   rviz:
-    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-rviz:${EDUBOT_CHANNEL:-stable}
+    build:
+      context: .
+      dockerfile: containers/rviz/Dockerfile
     container_name: edubot_rviz
     network_mode: host
     ipc: host
@@ -118,7 +126,8 @@ services:
       - edubot_settings:/settings
 
   web_video_server:
-    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-web-video-server:${EDUBOT_CHANNEL:-stable}
+    build:
+      context: containers/web_video_server
     container_name: edubot_web_video_server
     network_mode: host
     ipc: host
