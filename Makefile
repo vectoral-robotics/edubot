@@ -1,9 +1,9 @@
 # EduBot meta-repo — single entry point for development and deployment.
 #
 #   make src        clone/refresh ROS packages into ./src and dev repos into ./dev
-#   make dev        run the ROS 2 core built live from ./src (developer loop)
+#   make dev        build and run the whole stack from local source
 #   make login      log in to GHCR for private image pulls (once per robot)
-#   make up         run the fleet stack from pre-built GHCR images
+#   make up         run the stack (pull the 3 images, build the rest locally)
 #   make pull       pull the latest images for the current channel
 #   make update     pull + restart the fleet stack (on-robot OTA update)
 #   make freeze     write current src commits to edubot.lock.repos (release)
@@ -58,15 +58,15 @@ freeze: ## Freeze current src commits into edubot.lock.repos
 	@vcs export --exact $(SRC_DIR) > edubot.lock.repos
 	@echo "[edubot] wrote edubot.lock.repos (pinned commits)."
 
-# ---- Development (build from source) --------------------------------------
+# ---- Development (build everything from source) ---------------------------
 .PHONY: dev
-dev: ## Run the ROS 2 core built live from ./src
+dev: ## Build and run the whole stack from local source (pulls nothing*)
 	@test -d $(SRC_DIR) || { echo "run 'make src' first"; exit 1; }
-	docker compose -f $(DEV_COMPOSE) up --build
+	docker compose -f $(FLEET_COMPOSE) -f $(DEV_COMPOSE) up -d --build
 
 .PHONY: dev-down
 dev-down:
-	docker compose -f $(DEV_COMPOSE) down
+	docker compose -f $(FLEET_COMPOSE) -f $(DEV_COMPOSE) down
 
 # ---- Fleet (pre-built images) ---------------------------------------------
 .PHONY: login

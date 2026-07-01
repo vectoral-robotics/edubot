@@ -1,35 +1,39 @@
-# EduBot — DEVELOPER stack (build from source).
+# EduBot — DEVELOPER override (build everything from source, pull nothing*).
 #
-# The ROS 2 core is built live from ./src (bind-mounted), so it always reflects
-# whatever branch/commit you have checked out per repo. Use this on your laptop
-# or your dev robot:  make src && make dev
+# Used ON TOP of docker-compose.yaml:
+#   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --build
+# (that's what `make dev` runs). It flips the three pulled images to source
+# builds using the repos that `make src` checks out:
+#   - edubot (ros2)  -> built live from ./src            (docker/ros2.dev.Dockerfile)
+#   - dashboard      -> built from ./dev/edubot_dashboard
+#   - flasher        -> built from ./dev/edubot_firmware  (profile "flash")
+# rviz / dev / web_video_server already build from this repo in the base file.
 #
-# The surrounding services (dashboard, rviz, node_red, ...) come from the fleet
-# stack (pre-built images) and are wired in once GHCR images exist (Phase 2).
-# For now this file focuses on the source-built ROS 2 core — the thing you
-# actually iterate on.
+# * node_red and portainer are third-party tools with no source to build — they
+#   are the only images still pulled, and both are optional (autostart: false).
 services:
   edubot:
-    build:
+    build: !override
       context: ./docker
       dockerfile: ros2.dev.Dockerfile
-    container_name: edubot_ros2_dev
-    network_mode: host
-    ipc: host
-    privileged: true
-    restart: "no"
-    environment:
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - USE_SIM=${USE_SIM:-true}
-      - USE_RVIZ=${USE_RVIZ:-false}
-      - ENABLE_TELEOP=${ENABLE_TELEOP:-true}
-    volumes:
-      # Live source: whatever you have checked out per repo is what gets built.
+    command: !reset null
+    volumes: !override
       - ./src:/workspace/src
-      # Persist the colcon build/install so restarts don't rebuild from scratch.
       - edubot_dev_build:/workspace/build
       - edubot_dev_install:/workspace/install
+      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
+      - edubot_state:/state
+      - edubot_settings:/settings
       - /dev:/dev
+
+  dashboard:
+    build:
+      context: ./dev/edubot_dashboard/containers/dashboard
+
+  flasher:
+    build:
+      context: ./dev/edubot_firmware
+      dockerfile: containers/flasher/Dockerfile
 
 volumes:
   edubot_dev_build:
