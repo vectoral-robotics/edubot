@@ -1,0 +1,84 @@
+ui:
+  eyebrow: Edubot Workspace
+  title: Robot Dashboard
+  subtitle: Launch services and access system tools on the LAN.
+menu:
+  items:
+    - id: settings
+      label: Settings
+      type: link
+      href: /settings.html
+    - id: kinematics
+      label: Kinematics Lab
+      type: link
+      href: /kinematics.html
+    - id: viewer
+      label: Viewer
+      type: link
+      href: /navigation.html
+    - id: vibe
+      label: Vibe Coding
+      type: link
+      href: /vibe.html
+    - id: blockly
+      label: Blockly
+      type: link
+      href: /blockly.html
+    - id: reboot
+      label: Reboot Host
+      type: hostAction
+      actionId: reboot
+hostActions:
+  - id: reboot
+    label: Reboot Host
+    enabled: true
+    confirm: Reboot host now?
+    command: nsenter -t 1 -m -u -i -n -p -- systemctl reboot
+services:
+  - id: edubot
+    name: ROS Core
+    type: compose
+    serviceName: edubot
+    containerName: edubot_ros2
+    autostart: true
+    description: Runtime container with your ROS2 stack.
+  - id: dev
+    name: Code Server
+    type: compose
+    serviceName: dev
+    containerName: edubot_dev
+    url: https://{host}:8443
+    autostart: false
+    description: Develop ROS2 + ESP32 directly in the browser. Docker controlled.
+  - id: portainer
+    name: Portainer
+    type: compose
+    serviceName: portainer
+    containerName: edubot_portainer
+    url: http://{host}:9000
+    autostart: false
+    description: Docker management UI (LAN).
+  - id: rviz
+    name: RViz Web
+    type: compose
+    serviceName: rviz
+    containerName: edubot_rviz
+    url: http://{host}:14500/index.html?username=root&keyboard=0&floating_menu=1&autohide=1&xpramenu=0&open_windows=0&keyboard_button=0&clipboard_button=0&sound_button=0&cursor_lock_button=0
+    autostart: false
+    description: RViz in the browser via XPRA HTML5 (auto-resize).
+  - id: web_video_server
+    name: Web Video Server
+    type: compose
+    serviceName: web_video_server
+    containerName: edubot_web_video_server
+    url: http://{host}:8081
+    autostart: false
+    description: ROS video streams for browser clients.
+  - id: node_red
+    name: Node-RED
+    type: compose
+    serviceName: node_red
+    containerName: edubot_node_red
+    url: http://{host}:1880
+    autostart: false
+    description: Low-code automation and ROS integrations.

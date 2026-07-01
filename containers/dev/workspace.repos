@@ -1,0 +1,5 @@
+repositories:
+  edubot_demos:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_demos.git
+    version: main

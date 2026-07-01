@@ -1,16 +1,16 @@
 # EduBot — FLEET stack (pre-built images from GHCR).
 #
-# This is what a delivered robot runs. No source, no colcon build — it pulls
-# tagged images and starts them. Update = `make update` (pull + restart);
-# rollback = pin EDUBOT_CHANNEL to a previous vX.Y.Z.
+# This is what a delivered robot runs. The robot clones THIS meta-repo (small:
+# compose + config, no source build), which is bind-mounted as /edubot; the
+# containers are pulled from GHCR. Same mounts/config as the old dashboard
+# workspace compose — the dashboard is just one container here and reads its
+# config from the mounted /edubot (no app changes, nothing baked in).
 #
-# Image visibility on GHCR is per-image: public ROS packages, private dashboard/
-# firmware images. Private images need a pull-only token (`docker login ghcr.io`
-# with a fine-grained PAT / GitHub App, scope read:packages) on the robot.
+# Update = `make update` (pull + restart); roll back by pinning EDUBOT_CHANNEL
+# to a previous vX.Y.Z. Images are public → no login needed.
 #
-# NOTE: these images are produced by CI in Phase 2. Until then this file is the
-# target template and `make up` will not find the images yet.
-x-channel: &channel ${EDUBOT_CHANNEL:-stable}
+# For development, `make dev` rebuilds the ROS 2 core from ./src instead of
+# pulling it (docker-compose.dev.yaml).
 
 services:
   edubot:
@@ -27,10 +27,106 @@ services:
       - ENABLE_TELEOP=${ENABLE_TELEOP:-true}
       - ENABLE_LIDAR=${ENABLE_LIDAR:-false}
       - ENABLE_CAMERA=${ENABLE_CAMERA:-auto}
+      - CAMERA_DRIVER=${CAMERA_DRIVER:-cam2image}
+    command: /run.sh
     volumes:
+      - ${EDUBOT_WORKSPACE_DIR:-/edubot_ws}:/workspace
+      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
       - edubot_state:/state
       - edubot_settings:/settings
       - /dev:/dev
+
+  dev:
+    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-dev:${EDUBOT_CHANNEL:-stable}
+    container_name: edubot_dev
+    network_mode: host
+    ipc: host
+    privileged: true
+    restart: "no"
+    environment:
+      - CODE_SERVER_PASSWORD=${CODE_SERVER_PASSWORD:-edubot}
+      - CODE_SERVER_CN=edubot-codeserver
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+    volumes:
+      - ${EDUBOT_WORKSPACE_DIR:-/edubot_ws}:/workspace
+      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
+      - edubot_state:/state
+      - edubot_settings:/settings
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev:/dev
+
+  rviz:
+    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-rviz:${EDUBOT_CHANNEL:-stable}
+    container_name: edubot_rviz
+    network_mode: host
+    ipc: host
+    privileged: true
+    restart: "no"
+    environment:
+      - WEB_PORT=14500
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - RVIZ_RENDER_MODE=${RVIZ_RENDER_MODE:-software}
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 768M
+    volumes:
+      - ${EDUBOT_WORKSPACE_DIR:-/edubot_ws}:/workspace
+      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
+      - edubot_state:/state
+      - edubot_settings:/settings
+      - /dev:/dev
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: edubot_portainer
+    network_mode: host
+    ipc: host
+    restart: "no"
+    command: --data /state/portainer --admin-password '$$2y$$10$$StwlWHs.m97NlCxtabrj8OV.IiI35CrE9hi.Jc/IZHTXr/1.kr9xa'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - edubot_state:/state
+      - edubot_settings:/settings
+      - ${EDUBOT_WORKSPACE_DIR:-/edubot_ws}:/workspace
+      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
+
+  node_red:
+    image: nodered/node-red:latest
+    container_name: edubot_node_red
+    network_mode: host
+    ipc: host
+    restart: "no"
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+    user: "0:0"
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        if [ -f /settings/ros/ros.env ]; then set -a; . /settings/ros/ros.env; set +a; elif [ -f /settings/ros.env ]; then set -a; . /settings/ros.env; set +a; fi
+        mkdir -p /state/nodered /settings/nodered /settings/ros /data
+        ln -sfn /state/nodered/settings.js /data/settings.js
+        chown -R 1000:1000 /state/nodered
+        cd /workspace
+        exec node-red -u /state/nodered
+    volumes:
+      - ${EDUBOT_WORKSPACE_DIR:-/edubot_ws}:/workspace
+      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
+      - edubot_state:/state
+      - edubot_settings:/settings
+
+  web_video_server:
+    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-web-video-server:${EDUBOT_CHANNEL:-stable}
+    container_name: edubot_web_video_server
+    network_mode: host
+    ipc: host
+    restart: "no"
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+    volumes:
+      - edubot_settings:/settings
 
   dashboard:
     image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-dashboard:${EDUBOT_CHANNEL:-stable}
@@ -41,17 +137,38 @@ services:
     privileged: true
     restart: unless-stopped
     environment:
+      - COMPOSE_FILE=/edubot/docker-compose.yaml
+      - COMPOSE_PROJECT_NAME=edubot
+      - COMPOSE_PROJECT_DIRECTORY=/edubot
       - DASHBOARD_PORT=8080
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - DOCKER_API_VERSION=1.44
+      - DASHBOARD_CONFIG=/edubot/deploy/config/dashboard.yaml
+      - DASHBOARD_USER_APPS=/state/dashboard/user-apps.json
+      - DASHBOARD_STATE=/state/dashboard/dashboard-state.json
+      - DASHBOARD_SETTINGS_DIR=/settings/dashboard
+      - DASHBOARD_ROS_SETTINGS=/settings/ros/ros.env
+      - DASHBOARD_ROS_SETTINGS_SERVICE_IDS=edubot,rviz,web_video_server,node_red,dev
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4.1-mini}
+      - DASHBOARD_VIBE_SKILL=/edubot/deploy/config/vibe-robot-skill.md
+      - DASHBOARD_VIBE_ROS_SERVICE=edubot
+      - DASHBOARD_VIBE_ROS_CONTAINER=edubot_ros2
+      - DASHBOARD_VIBE_CMD_VEL_PUBLISHER=/edubot/deploy/ros/vibe_cmd_vel.py
+      - DASHBOARD_ROBOT_ASSETS_DIR=${DASHBOARD_ROBOT_ASSETS_DIR:-/workspace/install/edubot_description/share/edubot_description/assets}
+      - EDUBOT_PROJECT_DIR=${EDUBOT_PROJECT_DIR:-${PWD}}
+      - EDUBOT_WORKSPACE_DIR=${EDUBOT_WORKSPACE_DIR:-/edubot_ws}
     volumes:
+      - ${EDUBOT_WORKSPACE_DIR:-/edubot_ws}:/workspace
+      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
       - edubot_state:/state
       - edubot_settings:/settings
       - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
 
-  # Firmware (re)flasher — private image (arduino-cli + ESP32 core + the
-  # compiled delivery sketch). On-demand, not a long-running service: the
-  # "flash" profile keeps it out of `up`; run it with `make flash-fleet`
-  # (or from the dashboard). Reflashes the ESP32-S3 over serial.
+  # Firmware (re)flasher — on-demand, not started by `up` (profile "flash").
+  # Run with `make flash-fleet`. Reflashes the ESP32-S3 over serial.
   flasher:
     image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-flasher:${EDUBOT_CHANNEL:-stable}
     container_name: edubot_flasher

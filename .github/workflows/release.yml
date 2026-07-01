@@ -1,8 +1,8 @@
 name: release
 
-# Builds and pushes the EduBot ROS 2 core image to GHCR.
-#   push to main  -> :dev  (+ :sha-<short>)   built from edubot.repos
-#   tag v*        -> :stable (+ :vX.Y.Z)      built from edubot.lock.repos
+# Builds and pushes the EduBot fleet images to GHCR.
+#   push to main  -> :dev  (+ :sha-<short>)   ros2 built from edubot.repos
+#   tag v*        -> :stable (+ :vX.Y.Z)      ros2 built from edubot.lock.repos
 on:
   push:
     branches: [main]
@@ -16,13 +16,13 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  IMAGE: ghcr.io/${{ github.repository_owner }}/edubot-ros2
-
 jobs:
+  # ROS 2 core — special: bakes the workspace from a CI-staged manifest.
   ros2-image:
     name: Build & push edubot-ros2
     runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/edubot-ros2
     steps:
       - uses: actions/checkout@v4
 
@@ -45,18 +45,14 @@ jobs:
           fi
           echo "manifest_sha=$(sha256sum .build.repos | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
-      # QEMU enables the linux/arm64 build. Note: colcon under arm64 emulation is
-      # slow — switch to a native arm64 runner + manifest merge if it gets tight.
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
-
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -66,9 +62,65 @@ jobs:
           push: true
           tags: ${{ steps.plan.outputs.tags }}
           provenance: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=edubot-ros2
+          cache-to: type=gha,mode=max,scope=edubot-ros2
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
             ch.vectoral.edubot.manifest-sha256=${{ steps.plan.outputs.manifest_sha }}
+
+  # Support containers — plain context builds. arm64 (the robot) is emulated and
+  # slow under QEMU; switch to a native arm64 runner if it gets tight.
+  support-images:
+    name: Build & push ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: edubot-dev
+            context: containers/dev
+            file: containers/dev/Dockerfile
+          - image: edubot-rviz
+            context: .
+            file: containers/rviz/Dockerfile
+          - image: edubot-web-video-server
+            context: containers/web_video_server
+            file: containers/web_video_server/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute tags
+        id: plan
+        run: |
+          set -euo pipefail
+          IMAGE="ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/}"
+            echo "tags=${IMAGE}:stable,${IMAGE}:${VERSION}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tags=${IMAGE}:dev,${IMAGE}:sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.plan.outputs.tags }}
+          provenance: false
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
