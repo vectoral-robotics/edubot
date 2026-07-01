@@ -31,10 +31,13 @@ image.
 
 - **Developers** build from source (`make dev`), switch branches per repo.
 - **Fleet** pulls versioned images (`make up` / `make update`); channels
-  `stable`/`dev`/`vX.Y.Z`. Private images = pull-only GHCR token on the robot.
+  `stable`/`dev`/`vX.Y.Z`. Images are public → no login needed. (`make login` /
+  `scripts/ghcr-login.sh` stay available if an image is kept private.)
 
 Never conflate the two — source-private repos still deploy fine, because the
-robot only ever needs images + a tiny compose/env bundle, not source.
+robot only ever needs images + a tiny compose/env bundle, not source. The
+flasher image ships a compiled binary only, so publishing it public leaks no
+firmware source.
 
 ## Versioning
 

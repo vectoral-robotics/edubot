@@ -52,20 +52,19 @@ A delivered robot runs the image-based stack:
 
 ```bash
 cp .env.example .env                    # set EDUBOT_CHANNEL, ROS_DOMAIN_ID, ...
-make login                              # once per robot — private image pull (see below)
 make up                                 # pull + start (channel: stable)
 make update                             # OTA update: pull + restart + health check
 ```
 
 Images live on GHCR (`ghcr.io/vectoral-robotics/…`) with channel tags
-`:stable`, `:dev` and immutable `:vX.Y.Z`. Public ROS images pull without auth;
-private images (dashboard, flasher) need a one-time login with a **pull-only**
-credential (a fine-grained PAT / GitHub App token, scope `read:packages`):
+`:stable`, `:dev` and immutable `:vX.Y.Z`. The images are **public**, so robots
+pull them without any login — no token to provision.
+
+If you ever keep an image private, log in once per robot with a **pull-only**
+credential (fine-grained PAT, scope `read:packages`) before `make up`:
 
 ```bash
-# token in a root-owned file (recommended), then:
-make login
-# or inline: GHCR_TOKEN=… GHCR_USER=edubot-bot make login
+make login          # reads a token from /etc/edubot/ghcr-token (see .env.example)
 ```
 
 See [RELEASING.md](RELEASING.md) for how versioned releases are cut.
