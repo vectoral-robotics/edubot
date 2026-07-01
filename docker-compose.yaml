@@ -1,0 +1,65 @@
+# EduBot — FLEET stack (pre-built images from GHCR).
+#
+# This is what a delivered robot runs. No source, no colcon build — it pulls
+# tagged images and starts them. Update = `make update` (pull + restart);
+# rollback = pin EDUBOT_CHANNEL to a previous vX.Y.Z.
+#
+# Image visibility on GHCR is per-image: public ROS packages, private dashboard/
+# firmware images. Private images need a pull-only token (`docker login ghcr.io`
+# with a fine-grained PAT / GitHub App, scope read:packages) on the robot.
+#
+# NOTE: these images are produced by CI in Phase 2. Until then this file is the
+# target template and `make up` will not find the images yet.
+x-channel: &channel ${EDUBOT_CHANNEL:-stable}
+
+services:
+  edubot:
+    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-ros2:${EDUBOT_CHANNEL:-stable}
+    container_name: edubot_ros2
+    network_mode: host
+    ipc: host
+    privileged: true
+    restart: always
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - USE_SIM=${USE_SIM:-true}
+      - USE_RVIZ=${USE_RVIZ:-false}
+      - ENABLE_TELEOP=${ENABLE_TELEOP:-true}
+      - ENABLE_LIDAR=${ENABLE_LIDAR:-false}
+      - ENABLE_CAMERA=${ENABLE_CAMERA:-auto}
+    volumes:
+      - edubot_state:/state
+      - edubot_settings:/settings
+      - /dev:/dev
+
+  dashboard:
+    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-dashboard:${EDUBOT_CHANNEL:-stable}
+    container_name: edubot_dashboard
+    network_mode: host
+    ipc: host
+    pid: host
+    privileged: true
+    restart: unless-stopped
+    environment:
+      - DASHBOARD_PORT=8080
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+    volumes:
+      - edubot_state:/state
+      - edubot_settings:/settings
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Firmware (re)flasher — private image (arduino-cli + ESP32 core + compiled
+  # .bin). Invoked on demand by the dashboard to reflash the ESP32-S3; not a
+  # long-running service. Wired in at Phase 5.
+  # flasher:
+  #   image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-flasher:${EDUBOT_CHANNEL:-stable}
+  #   profiles: ["flash"]
+  #   privileged: true
+  #   volumes:
+  #     - /dev:/dev
+
+volumes:
+  edubot_state:
+    name: edubot_state
+  edubot_settings:
+    name: edubot_settings
