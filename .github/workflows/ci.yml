@@ -20,9 +20,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Shell scripts: update.sh + the ROS 2 dev entrypoint.
+      # Shell scripts: update.sh + the ROS 2 entrypoints. SC1091 is ignored —
+      # the sourced setup.bash files only exist at container runtime.
       - name: Shellcheck
-        run: shellcheck scripts/*.sh docker/*.sh
+        run: shellcheck -e SC1091 scripts/*.sh docker/*.sh
 
       # The compose files must parse (interpolation + schema).
       - name: Validate compose (dev)
