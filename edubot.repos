@@ -1,0 +1,39 @@
+# EduBot core workspace — public ROS 2 packages.
+#
+# This is the canonical package list. `make src` imports it into ./src as full,
+# independent git checkouts (branch/commit/push per repo, just like a normal
+# clone). The ROS 2 core image is built from this set.
+#
+# For a reproducible release, `make freeze` writes the currently checked-out
+# commits to edubot.lock.repos (pinned tags/SHAs) — that lockfile is the
+# bill-of-materials for a given EduBot version.
+repositories:
+  edubot_hardware:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_hardware.git
+    version: main
+  edubot_bringup:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_bringup.git
+    version: main
+  edubot_description:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_description.git
+    version: main
+  edubot_navigation:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_navigation.git
+    version: main
+  edubot_viz:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_viz.git
+    version: main
+  edubot_demos:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_demos.git
+    version: main
+  # Third-party LiDAR driver. TODO: pin to a specific tag in edubot.lock.repos
+  # for reproducibility (currently tracks the upstream default branch).
+  sllidar_ros2:
+    type: git
+    url: https://github.com/Slamtec/sllidar_ros2.git

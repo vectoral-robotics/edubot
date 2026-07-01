@@ -1,0 +1,14 @@
+# EduBot developer-only repos — imported ON TOP of edubot.repos by `make src`.
+#
+# These are NOT part of the colcon core workspace and are NOT shipped to the
+# fleet as source. They are here so a developer / dev robot gets everything with
+# a single `make src`.
+#
+# edubot_firmware is PRIVATE (proprietary). It is not a ROS package — it is the
+# ESP32-S3 Arduino firmware plus host tools. `make flash` uses its tools/flash.sh
+# to (re)flash the board from the machine it is plugged into (e.g. the Pi).
+repositories:
+  edubot_firmware:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_firmware.git
+    version: main
