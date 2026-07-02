@@ -1,0 +1,9 @@
+repositories:
+  edubot_dashboard:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_dashboard.git
+    version: 716ecb569a9a77d6b0dd464d090f58964a86c326
+  edubot_firmware:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_firmware.git
+    version: 9c3be8b0f8ee8bdfb65c373609710812caf8c5f2
