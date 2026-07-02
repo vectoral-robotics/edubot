@@ -49,6 +49,30 @@ git checkout -b feat/my-change
 Python changes (hardware, demos) are picked up live via `--symlink-install`;
 C++/launch changes need a rebuild (`make dev` again). Stop with `make dev-down`.
 
+### Updating & testing on the robot
+
+Each repo under `src/`/`dev/` is a normal git checkout, so you drive it with
+plain git. To pull the latest and rebuild:
+
+```bash
+make pull-src                        # git pull (fast-forward) in every subrepo
+# or just one:  cd src/edubot_hardware && git pull
+make dev                             # incremental colcon rebuild + restart
+```
+
+To test an **un-merged branch**, check it out in that subrepo (it must be
+pushed so the robot can fetch it), then rebuild:
+
+```bash
+cd src/edubot_hardware
+git fetch && git checkout feat/my-branch
+cd ../.. && make dev
+```
+
+Use `git pull` / `make pull-src` to update — **not** `make src`, which
+re-imports the manifest versions (`main`) and would switch you off your branch.
+`make src` is for the initial clone or resetting to the manifest.
+
 ### Flashing the firmware
 
 Flashed from the machine the board is plugged into (e.g. the robot's Pi):
