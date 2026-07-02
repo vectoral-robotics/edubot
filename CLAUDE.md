@@ -10,7 +10,10 @@ separate package repos; it holds almost no code of its own.
 - `docker-compose.dev.yaml` (build from source) and `docker-compose.yaml`
   (pre-built GHCR images). One robot runs one or the other.
 - `Makefile` — the user-facing commands (`src`, `dev`, `up`, `pull`, `update`,
-  `freeze`, `release`, `flash`).
+  `freeze`, `release-dev`, `promote-stable`, `flash`).
+- `channels/dev.json` / `channels/stable.json` — the per-channel release
+  manifest (version + pinned image **digests** + component versions), written on
+  the `dev`/`stable` branches. Robots watch their channel branch.
 - `docker/` — the **build recipes for all three fleet images** (`ros2*.Dockerfile`,
   `dashboard/`, `flasher/`). `scripts/` — `release.sh` (image builds) + on-robot
   `update.sh`.
@@ -22,18 +25,21 @@ here. `./dev` is kept out of `./src` so it never enters the colcon workspace.
 
 ## Image builds — centralized here, nowhere else
 
-All three fleet images are built **only** from this repo via `make release`
-(`scripts/release.sh`) — the app repos do NOT build images in their own CI.
+All three fleet images are built **only** from this repo (via
+`scripts/build-images.sh`, driven by `make release-dev`) — the app repos do NOT
+build images in their own CI.
 
 - `edubot-ros2` ← `docker/ros2.Dockerfile` (imports its sources in-container).
 - `edubot-dashboard` ← `docker/dashboard/Dockerfile` (source: `dev/edubot_dashboard`).
 - `edubot-flasher` ← `docker/flasher/Dockerfile` (source: `dev/edubot_firmware`).
 
-Build context is always the meta-repo root. `CHANNEL=dev` builds from the main
-manifests and tags `:dev`; `CHANNEL=stable` builds from the lockfiles and tags
-`:stable` + `:v<product-version>`. Multi-arch (amd64/arm64) via buildx — runs on
-any machine with Docker (a Mac is fine; no ROS/Pi needed). A push needs a GHCR
-login with `write:packages`.
+Build context is always the meta-repo root. `make release-dev` freezes the
+sub-repo mains, builds all three multi-arch (amd64/arm64) via buildx, pushes
+`:dev`, and records the pushed **digests** in `channels/dev.json`.
+`make promote-stable` re-tags those same digests `:stable` + `:vX.Y.Z` with
+`docker buildx imagetools create` (no rebuild). Runs on any machine with Docker
+(a Mac is fine; no ROS/Pi needed). A push needs a GHCR login with
+`write:packages`.
 
 ## Conventions
 
@@ -56,12 +62,23 @@ robot only ever needs images + a tiny compose/env bundle, not source. The
 flasher image ships a compiled binary only, so publishing it public leaks no
 firmware source.
 
-## Versioning
+## Versioning (GitOps, two channel branches)
 
-Component (per-repo semver tags) → image (built from a lockfile) → product (a
-tag on this repo; the lockfiles are the bill-of-materials). `make freeze` records
-the current `src/` **and** `dev/` commits into `edubot.lock.repos` /
-`edubot.dev.lock.repos` for a reproducible stable release.
+The meta-repo is the source of truth and carries two channel branches, `dev` and
+`stable` (plus `main`, where the meta-repo is developed via PRs). A *release* is
+one pipeline that builds/tags the images AND writes a commit on the channel
+branch pinning them:
+
+- `make release-dev` — freeze sub-repo mains, build+push `:dev`, write
+  `channels/dev.json` (pinned digests) and commit to `dev`. Version `dev-N`.
+- `make promote-stable [VERSION=X.Y.Z]` — re-tag the SAME dev digests as
+  `:stable` + `:vX.Y.Z` (no rebuild), write `channels/stable.json`, commit +
+  tag on `stable`.
+
+`dev`/`stable` are never hand-edited — only the pipeline writes them. Robots
+follow one channel (`EDUBOT_CHANNEL`); `make update` checks out the channel's
+latest commit (bringing new compose/config) and pins images by digest. Component
+tags (per-repo semver) still feed the lockfiles. See RELEASING.md.
 
 ## Firmware
 
