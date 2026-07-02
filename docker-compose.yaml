@@ -15,7 +15,9 @@
 
 services:
   edubot:
-    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-ros2:${EDUBOT_CHANNEL:-stable}
+    # Pinned by digest from channels/<channel>.json (set by scripts/update.sh);
+    # falls back to the moving channel tag for a plain `make up`.
+    image: ${EDUBOT_ROS2_IMAGE:-ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-ros2:${EDUBOT_CHANNEL:-stable}}
     container_name: edubot_ros2
     network_mode: host
     ipc: host
@@ -138,7 +140,7 @@ services:
       - edubot_settings:/settings
 
   dashboard:
-    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-dashboard:${EDUBOT_CHANNEL:-stable}
+    image: ${EDUBOT_DASHBOARD_IMAGE:-ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-dashboard:${EDUBOT_CHANNEL:-stable}}
     container_name: edubot_dashboard
     network_mode: host
     ipc: host
@@ -179,7 +181,7 @@ services:
   # Firmware (re)flasher — on-demand, not started by `up` (profile "flash").
   # Run with `make flash-fleet`. Reflashes the ESP32-S3 over serial.
   flasher:
-    image: ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-flasher:${EDUBOT_CHANNEL:-stable}
+    image: ${EDUBOT_FLASHER_IMAGE:-ghcr.io/${GHCR_OWNER:-vectoral-robotics}/edubot-flasher:${EDUBOT_CHANNEL:-stable}}
     container_name: edubot_flasher
     profiles: ["flash"]
     privileged: true
