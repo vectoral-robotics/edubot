@@ -28,6 +28,21 @@ PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 
 [ -f "$ROS_LOCKFILE" ] || die "ros2 manifest not found: $ROS_LOCKFILE"
 
+# The default 'docker' buildx driver cannot --push (and can't do multi-arch).
+# Ensure a docker-container builder is active when we intend to push.
+ensure_push_builder() {
+  local driver
+  driver=$(docker buildx inspect 2>/dev/null | awk -F': *' '/^Driver:/{print $2; exit}')
+  if [ "$driver" = "docker" ] || [ -z "$driver" ]; then
+    if ! docker buildx inspect edubot-builder >/dev/null 2>&1; then
+      info "creating a docker-container buildx builder (the default driver can't push)"
+      docker buildx create --name edubot-builder --driver docker-container --bootstrap >/dev/null
+    fi
+    docker buildx use edubot-builder
+  fi
+}
+[ "$PUSH" = "true" ] && ensure_push_builder
+
 # Dockerfile per image.
 dockerfile_for() {
   case "$1" in
