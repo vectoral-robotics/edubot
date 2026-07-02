@@ -27,6 +27,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git vim build-essential wget v4l-utils \
  && rm -rf /var/lib/apt/lists/*
 
+# Runtime Python deps (edubot_hardware talks to the ESP32 via pyserial).
+RUN pip3 install --no-cache-dir pyserial numpy
+
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc && \
     echo "if [ -f /workspace/install/setup.bash ]; then source /workspace/install/setup.bash; fi" >> /root/.bashrc
 

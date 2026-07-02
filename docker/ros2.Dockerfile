@@ -28,6 +28,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir -U vcstool
+# Runtime Python deps (edubot_hardware talks to the ESP32 via pyserial).
+RUN pip3 install --no-cache-dir pyserial numpy
 
 WORKDIR /edubot_ws
 
