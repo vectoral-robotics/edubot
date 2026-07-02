@@ -19,6 +19,16 @@ source scripts/lib.sh
 require_clean_tree
 command -v vcs >/dev/null || die "vcstool not found (pip install vcstool)."
 
+# A dev release freezes each sub-repo's main; refuse if a checkout sits on a
+# different branch (e.g. a developer's feature branch) — run `make src` to reset.
+off=""
+for d in src/*/ dev/*/; do
+  { [ -d "$d/.git" ] || [ -f "$d/.git" ]; } || continue
+  b=$(git -C "$d" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  [ "$b" = "main" ] || off="$off $(basename "$d")($b)"
+done
+[ -z "$off" ] || die "sub-repos not on main:$off — run 'make src' to reset before a dev release."
+
 info "refreshing sub-repos to their latest main (make pull-src)"
 make pull-src
 
@@ -43,7 +53,10 @@ flash_ref="${REGISTRY}/edubot-flasher@$(ref_of edubot-flasher)"
 # 4. Compute the next dev build number + component versions (from the frozen
 #    src/ + dev/ checkouts).
 git fetch -q origin
-prev=$(git show origin/dev:channels/dev.json 2>/dev/null | jq -r '.version // "dev-0"' | sed 's/^dev-//')
+# On the very first dev release origin/dev does not exist yet; keep git show's
+# exit 128 from tripping `set -o pipefail` by capturing it separately.
+prev_json=$(git show origin/dev:channels/dev.json 2>/dev/null || echo '{}')
+prev=$(jq -r '.version // "dev-0"' <<<"$prev_json" | sed 's/^dev-//')
 [[ "$prev" =~ ^[0-9]+$ ]] || prev=0
 version="dev-$((prev + 1))"
 components=$(components_json)
