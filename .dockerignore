@@ -1,0 +1,29 @@
+# Build context for all three images is the meta-repo root (see docker/*.Dockerfile
+# and scripts/release.sh). Keep the context lean, but KEEP the dashboard/firmware
+# sources under dev/ — the dashboard and flasher builds COPY from there.
+#
+# Note: .build.repos is staged by the release script and is required by the
+# ros2 build, so it must NOT be ignored.
+
+.git
+**/.git
+.github
+
+# The ROS core build imports its sources inside the container from the manifest,
+# so ./src is never part of any build context.
+src/
+
+# vcstool checkouts carry their own VCS metadata / build junk.
+dev/**/.git
+dev/edubot_dashboard/node_modules
+**/node_modules
+
+# Python / tooling caches
+**/__pycache__
+**/*.pyc
+.venv
+uv.lock
+
+# Editor / OS junk
+.DS_Store
+*.swp

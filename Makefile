@@ -6,15 +6,18 @@
 #   make up         run the stack (pull the 3 images, build the rest locally)
 #   make pull       pull the latest images for the current channel
 #   make update     pull + restart the fleet stack (on-robot OTA update)
-#   make freeze     write current src commits to edubot.lock.repos (release)
+#   make freeze     pin current src + dev commits into the lockfiles (release)
+#   make release    build & push the 3 fleet images (CHANNEL=dev|stable)
 #   make status     git status across all src repos
 #   make flash      (re)flash the ESP32-S3 from source with SKETCH (dev)
 #   make flash-fleet  reflash the ESP32-S3 from the edubot-flasher image (fleet)
 #   make flash-setup  install arduino-cli + the ESP32 core (once per machine)
 
 SHELL := /bin/bash
-# Core ROS 2 workspace (colcon). Dev-only, non-ROS repos (firmware) go in DEV_DIR
-# so they never leak into the reproducible lockfile or the fleet image.
+# Core ROS 2 workspace (colcon) in SRC_DIR; non-ROS source repos (firmware,
+# dashboard) in DEV_DIR so they stay out of the colcon workspace. Both are
+# pinned by `make freeze` (into edubot.lock.repos / edubot.dev.lock.repos) and
+# both feed the fleet images, which are built centrally by scripts/release.sh.
 SRC_DIR := src
 DEV_DIR := dev
 
@@ -51,12 +54,21 @@ pull-src: ## git pull across all checked-out repos (fast-forward)
 	@test -d $(DEV_DIR) && vcs pull $(DEV_DIR) || true
 
 .PHONY: freeze
-freeze: ## Freeze current src commits into edubot.lock.repos
+freeze: ## Pin current src + dev commits into the lockfiles (release BOM)
 	@test -d $(SRC_DIR) && [ -n "$$(ls -A $(SRC_DIR) 2>/dev/null)" ] \
 		|| { echo "src/ is empty — run 'make src' first"; exit 1; }
-	@# Only the ROS core (src/) is frozen — dev/ (firmware) is intentionally excluded.
+	@test -d $(DEV_DIR) && [ -n "$$(ls -A $(DEV_DIR) 2>/dev/null)" ] \
+		|| { echo "dev/ is empty — run 'make src' first"; exit 1; }
+	@# The bill-of-materials for a stable release: ROS core (src/) and the
+	@# non-ROS source repos (dev/ — dashboard, firmware) that feed the images.
 	@vcs export --exact $(SRC_DIR) > edubot.lock.repos
-	@echo "[edubot] wrote edubot.lock.repos (pinned commits)."
+	@vcs export --exact $(DEV_DIR) > edubot.dev.lock.repos
+	@echo "[edubot] wrote edubot.lock.repos + edubot.dev.lock.repos (pinned commits)."
+
+# ---- Release (the ONLY place the fleet images are built) ------------------
+.PHONY: release
+release: ## Build & push the 3 fleet images (CHANNEL=dev from main | stable from lockfiles)
+	CHANNEL=$(CHANNEL) ./scripts/release.sh
 
 # ---- Development (build everything from source) ---------------------------
 .PHONY: dev

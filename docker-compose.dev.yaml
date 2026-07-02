@@ -3,11 +3,15 @@
 # Used ON TOP of docker-compose.yaml:
 #   docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --build
 # (that's what `make dev` runs). It flips the three pulled images to source
-# builds using the repos that `make src` checks out:
-#   - edubot (ros2)  -> built live from ./src            (docker/ros2.dev.Dockerfile)
-#   - dashboard      -> built from ./dev/edubot_dashboard
-#   - flasher        -> built from ./dev/edubot_firmware  (profile "flash")
+# builds. The build recipes all live in this repo's docker/ dir; the app sources
+# are the repos that `make src` checks out into ./src and ./dev:
+#   - edubot (ros2)  -> docker/ros2.dev.Dockerfile   (live from ./src)
+#   - dashboard      -> docker/dashboard/Dockerfile  (source: ./dev/edubot_dashboard)
+#   - flasher        -> docker/flasher/Dockerfile    (source: ./dev/edubot_firmware, profile "flash")
 # rviz / dev / web_video_server already build from this repo in the base file.
+#
+# These use the same recipes as the pushed fleet images (scripts/release.sh); the
+# only dev-specific one is the ros2 image, which mounts ./src instead of baking it.
 #
 # * node_red and portainer are third-party tools with no source to build — they
 #   are the only images still pulled, and both are optional (autostart: false).
@@ -28,12 +32,13 @@ services:
 
   dashboard:
     build:
-      context: ./dev/edubot_dashboard
+      context: .
+      dockerfile: docker/dashboard/Dockerfile
 
   flasher:
     build:
-      context: ./dev/edubot_firmware
-      dockerfile: containers/flasher/Dockerfile
+      context: .
+      dockerfile: docker/flasher/Dockerfile
 
 volumes:
   edubot_dev_build:

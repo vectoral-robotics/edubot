@@ -1,11 +1,14 @@
 # Releasing EduBot
 
 A release is a tag on this meta-repo. Its bill-of-materials is
-`edubot.lock.repos` at that tag — the exact commit of every package that went
-into the `:stable` / `:vX.Y.Z` images.
+`edubot.lock.repos` + `edubot.dev.lock.repos` at that tag — the exact commit of
+every source repo that went into the `:stable` / `:vX.Y.Z` images.
 
 Three version layers are in play (see README): **component** (per-repo tags),
-**image** (built from the lockfile), **product** (this repo's tag).
+**image** (built from the lockfiles), **product** (this repo's tag).
+
+All images are built **locally** from this repo with `make release` — nothing is
+built in any app repo's CI.
 
 ## Cut a release
 
@@ -22,10 +25,10 @@ Three version layers are in play (see README): **component** (per-repo tags),
 2. **Refresh and pin the workspace.** From the meta-repo root:
 
    ```bash
-   make pull-src        # fast-forward every repo in ./src
-   make freeze          # writes edubot.lock.repos with exact commits
-   git add edubot.lock.repos
-   git commit -m "build: freeze lockfile for the next release"
+   make pull-src        # fast-forward every repo in ./src and ./dev
+   make freeze          # writes edubot.lock.repos + edubot.dev.lock.repos
+   git add edubot.lock.repos edubot.dev.lock.repos
+   git commit -m "build: freeze lockfiles for the next release"
    ```
 
 3. **Bump the product version + tag.** commitizen reads `.cz.toml`, updates the
@@ -40,9 +43,17 @@ Three version layers are in play (see README): **component** (per-repo tags),
    The very first release has no prior tag, so commitizen asks to confirm the
    initial tag — pass `--yes` (or answer the prompt) that one time.
 
-4. **CI builds the release.** The tag push triggers `release.yml` in this repo
-   (and, once its workflow is committed, in `edubot_dashboard`). Both push
-   `:stable` and `:vX.Y.Z` to GHCR, built multi-arch from the lockfile.
+4. **Build & push the images.** From the meta-repo root, with the workspace at
+   the frozen commits and a GHCR login that has `write:packages`:
+
+   ```bash
+   make release CHANNEL=stable      # builds all 3 images from the lockfiles,
+                                    # tags :stable + :v<product-version>, pushes
+   ```
+
+   Multi-arch (amd64/arm64) via buildx — runs on any machine with Docker, macOS
+   included. Rolling `:dev` for the dev channel is the same command with
+   `CHANNEL=dev` (builds from the main manifests instead of the lockfiles).
 
 ## Deploy / roll back on robots
 
@@ -53,8 +64,7 @@ EDUBOT_CHANNEL=v1.4.2 make up    # pin an exact version (e.g. to roll back)
 
 ## What "reproducible" means here
 
-`make freeze` records each package's exact commit SHA (`vcs export --exact`), so
-rebuilding `edubot-ros2` from a given `edubot.lock.repos` yields the same
-workspace. The image also carries a `ch.vectoral.edubot.manifest-sha256` label,
-so `docker inspect` on a robot tells you exactly which manifest it was built
-from.
+`make freeze` records each source repo's exact commit SHA (`vcs export --exact`)
+into `edubot.lock.repos` (ROS core) and `edubot.dev.lock.repos` (dashboard,
+firmware). `make release CHANNEL=stable` builds every image from those pinned
+commits, so a given release tag reproduces the same three images.

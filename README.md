@@ -11,8 +11,10 @@ container here.
 
 ## Prerequisites
 
-Runs on the **robot (a Raspberry Pi) or any Linux box** — the stack uses host
-networking and device access, so it does **not** run on macOS/Windows.
+Running the **stack** needs the **robot (a Raspberry Pi) or any Linux box** — it
+uses host networking and device access, so it does **not** run on macOS/Windows.
+(Building the fleet images with `make release` is separate and runs anywhere with
+Docker + buildx, macOS included — see [RELEASING.md](RELEASING.md).)
 
 - **Docker** with the Compose plugin.
 - **git** with access to the private `edubot_firmware` and `edubot_dashboard`
@@ -133,23 +135,25 @@ Three layers, no overlap:
 1. **Component** — each package repo carries its own semver (`package.xml` +
    commitizen), tagged `vX.Y.Z` on that repo. Firmware reports `FW_VERSION`
    over serial on boot.
-2. **Image** — `edubot-ros2` is built from a specific `edubot.lock.repos`.
-3. **Product** — a tag on this meta-repo; `edubot.lock.repos` at that tag is the
-   bill-of-materials for that EduBot release. Generate it with `make freeze`.
+2. **Image** — all three fleet images are built centrally with `make release`
+   from the lockfiles (`edubot.lock.repos` + `edubot.dev.lock.repos`); no image
+   is built in any app repo's CI.
+3. **Product** — a tag on this meta-repo; the lockfiles at that tag are the
+   bill-of-materials for that EduBot release. Generate them with `make freeze`.
 
 ## Layout
 
 | Path | Purpose |
 |---|---|
 | `edubot.repos` | public ROS package list (the colcon core, → `./src`) |
-| `edubot.dev.repos` | dev-only source: firmware + dashboard (→ `./dev`) |
-| `edubot.lock.repos` | pinned commits for a release (`make freeze`) |
+| `edubot.dev.repos` | non-ROS source: firmware + dashboard (→ `./dev`) |
+| `edubot.lock.repos` / `edubot.dev.lock.repos` | pinned commits for a release (`make freeze`) |
 | `docker-compose.yaml` | the stack (pulled images + on-robot builds) |
 | `docker-compose.dev.yaml` | dev override — build everything from source |
-| `containers/` | build contexts for the on-robot containers |
+| `docker/` | build recipes for the 3 fleet images (`ros2`, `dashboard/`, `flasher/`) + entrypoints |
+| `containers/` | build contexts for the on-robot-built support containers (rviz, dev, web_video_server) |
 | `deploy/` | dashboard config + helpers, mounted at runtime |
-| `docker/` | the ROS 2 core image (fleet + dev) + entrypoints |
-| `scripts/` | `update.sh` (update), `ghcr-login.sh` (private images) |
+| `scripts/` | `release.sh` (image builds), `update.sh` (update), `ghcr-login.sh` (private images) |
 
 Run `make` (no target) for the full command list.
 

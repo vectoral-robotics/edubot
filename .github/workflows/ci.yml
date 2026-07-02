@@ -20,10 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Shell scripts: update.sh + the ROS 2 entrypoints. SC1091 is ignored —
-      # the sourced setup.bash files only exist at container runtime.
+      # Shell scripts: release/update scripts + the container entrypoints (incl.
+      # docker/flasher/). SC1091 is ignored — the sourced setup.bash files only
+      # exist at container runtime.
       - name: Shellcheck
-        run: shellcheck -e SC1091 scripts/*.sh docker/*.sh
+        run: >
+          find scripts docker -type f -name '*.sh' -print0
+          | xargs -0 shellcheck -e SC1091
 
       # The compose files must parse (interpolation + schema). The dev file is
       # an override applied on top of the fleet file (that's how `make dev` uses
