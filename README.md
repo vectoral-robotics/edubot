@@ -9,6 +9,17 @@ It is also the **deployment repo**: it holds the Docker Compose stack, all the
 container build contexts, and the mounted config. The dashboard is just one
 container here.
 
+## Prerequisites
+
+Runs on the **robot (a Raspberry Pi) or any Linux box** — the stack uses host
+networking and device access, so it does **not** run on macOS/Windows.
+
+- **Docker** with the Compose plugin.
+- **git** with access to the private `edubot_firmware` and `edubot_dashboard`
+  repos (an SSH key or token on the machine).
+- **vcstool** (`pip install vcstool`) — `make src` uses the `vcs` command.
+- For flashing only: `arduino-cli` (installed by `make flash-setup`).
+
 ## How containers reach a robot (hybrid)
 
 The rule: **a container is a pulled image only if its source is not on the
@@ -36,6 +47,20 @@ make dev        # builds the WHOLE stack from local source and runs it
 `make dev` pulls nothing EduBot-specific — it builds `edubot` (from `./src`),
 `dashboard` (from `./dev/edubot_dashboard`), plus `rviz`/`dev`/`web_video_server`
 from this repo. Only `node_red`/`portainer` (third-party, optional) are images.
+
+The **first** `make dev` runs a full colcon build (a few minutes). Watch it with
+`docker logs -f edubot_ros2` until you see `ROS2 nodes are running` — the
+dashboard and video connect once the ROS core is up. Then open the dashboard at
+**`http://<robot-ip>:8080`**. Other services (started from the dashboard):
+
+| Service | URL |
+|---|---|
+| Dashboard | `http://<robot-ip>:8080` |
+| Code Server (`dev`) | `https://<robot-ip>:8443` |
+| RViz (web) | `http://<robot-ip>:14500` |
+| Web Video | `http://<robot-ip>:8081` |
+| Node-RED | `http://<robot-ip>:1880` |
+| Portainer | `http://<robot-ip>:9000` |
 
 Each repo under `src/` (and `dev/`) is a normal, independent git checkout —
 branch, commit and push per repo exactly like a standalone clone:
