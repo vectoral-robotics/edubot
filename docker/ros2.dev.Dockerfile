@@ -31,7 +31,10 @@ RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc && \
     echo "if [ -f /workspace/install/setup.bash ]; then source /workspace/install/setup.bash; fi" >> /root/.bashrc
 
 WORKDIR /workspace
+# run.sh is the shared production launcher; the dev entrypoint builds from src
+# then hands off to it (see ros2-entrypoint.dev.sh).
+COPY run.sh /run.sh
 COPY ros2-entrypoint.dev.sh /ros2-entrypoint.dev.sh
-RUN chmod +x /ros2-entrypoint.dev.sh
+RUN chmod +x /run.sh /ros2-entrypoint.dev.sh
 
 ENTRYPOINT ["/ros2-entrypoint.dev.sh"]

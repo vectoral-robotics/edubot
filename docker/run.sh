@@ -59,7 +59,9 @@ find_camera_device() {
   return 1
 }
 
-source /edubot_ws/install/setup.bash
+# Workspace install to source. Fleet image builds into /edubot_ws; the dev
+# container builds into /workspace and sets EDUBOT_WS accordingly.
+source "${EDUBOT_WS:-/edubot_ws}/install/setup.bash"
 
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
