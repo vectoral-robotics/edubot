@@ -44,8 +44,9 @@ case "$CHANNEL" in
   stable)
     ros_manifest="edubot.lock.repos"
     dev_manifest="edubot.dev.lock.repos"
-    [ -f "$ros_manifest" ] && [ -f "$dev_manifest" ] \
-      || die "lockfiles missing — run 'make freeze' first ($ros_manifest / $dev_manifest)."
+    if [ ! -f "$ros_manifest" ] || [ ! -f "$dev_manifest" ]; then
+      die "lockfiles missing — run 'make freeze' first ($ros_manifest / $dev_manifest)."
+    fi
     # Product version comes from the meta-repo (.cz.toml) — the release identity.
     pv="$(grep -E '^version = ' .cz.toml | head -1 | sed -E 's/.*"([^"]+)".*/\1/')"
     [ -n "$pv" ] || die "could not read product version from .cz.toml"
