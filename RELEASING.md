@@ -39,9 +39,17 @@ of what the images are, so the two can never drift.
 ## Prerequisites
 
 - `docker` + `buildx` (multi-arch build). A Mac with Docker Desktop is fine — no
-  ROS/Pi needed.
+  ROS/Pi needed. A push-capable `docker-container` builder is **auto-created** by
+  the scripts (the default `docker` driver can't push).
 - `docker login ghcr.io` with a token that has **`write:packages`** for the org.
 - `vcstool` (`pip install vcstool`), `jq`.
+- Your `src/` + `dev/` checkouts must be on **`main`** (a dev release freezes
+  their mains) — run `make src` to reset if you were on feature branches.
+- **On Apple Silicon** `PLATFORMS=linux/arm64 make release-dev` builds natively
+  and fast (the fleet is arm64); the default is full multi-arch (amd64 is
+  emulated → slow).
+- **Once**, after the very first push, make the images publicly pullable:
+  `make ghcr-public`.
 
 ## Cut a dev release
 

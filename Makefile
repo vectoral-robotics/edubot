@@ -9,6 +9,7 @@
 #   make freeze     pin current src + dev commits into the lockfiles (release)
 #   make release-dev      cut a dev release (freeze + build/push :dev + commit to 'dev')
 #   make promote-stable   promote dev -> stable (re-tag images, no rebuild; VERSION=X.Y.Z)
+#   make ghcr-public      make the 3 fleet images publicly pullable (once)
 #   make status     git status across all src repos
 #   make flash      (re)flash the ESP32-S3 from source with SKETCH (dev)
 #   make flash-fleet  reflash the ESP32-S3 from the edubot-flasher image (fleet)
@@ -77,6 +78,10 @@ release-dev: ## Cut a dev release: freeze + build/push :dev + commit to 'dev'
 .PHONY: promote-stable
 promote-stable: ## Promote dev -> stable (re-tag images, no rebuild); VERSION=X.Y.Z optional
 	./scripts/promote-stable.sh
+
+.PHONY: ghcr-public
+ghcr-public: ## Make the 3 fleet images publicly pullable (once, after the first push)
+	./scripts/ghcr-public.sh
 
 # ---- Development (build everything from source) ---------------------------
 .PHONY: dev
