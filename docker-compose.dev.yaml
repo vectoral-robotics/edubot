@@ -28,7 +28,7 @@ services:
 
   dashboard:
     build:
-      context: ./dev/edubot_dashboard/containers/dashboard
+      context: ./dev/edubot_dashboard
 
   flasher:
     build:

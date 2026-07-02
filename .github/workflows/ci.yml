@@ -25,9 +25,12 @@ jobs:
       - name: Shellcheck
         run: shellcheck -e SC1091 scripts/*.sh docker/*.sh
 
-      # The compose files must parse (interpolation + schema).
+      # The compose files must parse (interpolation + schema). The dev file is
+      # an override applied on top of the fleet file (that's how `make dev` uses
+      # it), so validate the merged stack — standalone it lacks the volumes and
+      # services defined in the base file.
       - name: Validate compose (dev)
-        run: docker compose -f docker-compose.dev.yaml config >/dev/null
+        run: docker compose -f docker-compose.yaml -f docker-compose.dev.yaml config >/dev/null
 
       - name: Validate compose (fleet)
         run: EDUBOT_CHANNEL=stable docker compose -f docker-compose.yaml config >/dev/null
