@@ -7,7 +7,8 @@
 #   make pull       pull the latest images for the current channel
 #   make update     pull + restart the fleet stack (on-robot OTA update)
 #   make freeze     pin current src + dev commits into the lockfiles (release)
-#   make release    build & push the 3 fleet images (CHANNEL=dev|stable)
+#   make release-dev      cut a dev release (freeze + build/push :dev + commit to 'dev')
+#   make promote-stable   promote dev -> stable (re-tag images, no rebuild; VERSION=X.Y.Z)
 #   make status     git status across all src repos
 #   make flash      (re)flash the ESP32-S3 from source with SKETCH (dev)
 #   make flash-fleet  reflash the ESP32-S3 from the edubot-flasher image (fleet)
@@ -66,9 +67,16 @@ freeze: ## Pin current src + dev commits into the lockfiles (release BOM)
 	@echo "[edubot] wrote edubot.lock.repos + edubot.dev.lock.repos (pinned commits)."
 
 # ---- Release (the ONLY place the fleet images are built) ------------------
-.PHONY: release
-release: ## Build & push the 3 fleet images (CHANNEL=dev from main | stable from lockfiles)
-	CHANNEL=$(CHANNEL) ./scripts/release.sh
+# GitOps model: the meta-repo is the source of truth and carries two channel
+# branches, 'dev' and 'stable'. A release is one pipeline that builds/tags the
+# images AND writes a commit on the channel branch pinning them. See RELEASING.md.
+.PHONY: release-dev
+release-dev: ## Cut a dev release: freeze + build/push :dev + commit to 'dev'
+	./scripts/release-dev.sh
+
+.PHONY: promote-stable
+promote-stable: ## Promote dev -> stable (re-tag images, no rebuild); VERSION=X.Y.Z optional
+	./scripts/promote-stable.sh
 
 # ---- Development (build everything from source) ---------------------------
 .PHONY: dev
