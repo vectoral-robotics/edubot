@@ -12,9 +12,14 @@ built in any app repo's CI.
 
 ## Cut a release
 
-1. **Release the components first (recommended).** In each package repo that
-   changed, bump and tag its own version so the lockfile pins released commits,
-   not arbitrary work-in-progress:
+1. **Components are already released.** Every app repo auto-bumps and tags
+   itself when a PR is merged to its `main` (its `.github/workflows/release.yml`
+   runs `cz bump` on the Conventional Commits since its last tag). So by the time
+   you cut a product release, each component already carries its own `vX.Y.Z`
+   tag — no manual per-repo bump is needed.
+
+   Only bump a component by hand if you deliberately want to release it outside
+   of a merge:
 
    ```bash
    cd src/edubot_hardware
