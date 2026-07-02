@@ -128,18 +128,26 @@ robot with a pull-only token — see `.env.example`.)
 
 See [RELEASING.md](RELEASING.md) for how versioned releases are cut.
 
-## Versioning
+## Versioning & channels
+
+GitOps: the meta-repo is the source of truth and carries two **channel
+branches**, `dev` and `stable`. A robot follows one channel; `make update`
+advances its checkout to that branch's latest state (bringing new compose/config
+with it) and pins the images by digest from `channels/<channel>.json`.
 
 Three layers, no overlap:
 
 1. **Component** — each package repo carries its own semver (`package.xml` +
-   commitizen), tagged `vX.Y.Z` on that repo. Firmware reports `FW_VERSION`
+   commitizen), auto-tagged `vX.Y.Z` on merge. Firmware reports `FW_VERSION`
    over serial on boot.
-2. **Image** — all three fleet images are built centrally with `make release`
-   from the lockfiles (`edubot.lock.repos` + `edubot.dev.lock.repos`); no image
-   is built in any app repo's CI.
-3. **Product** — a tag on this meta-repo; the lockfiles at that tag are the
-   bill-of-materials for that EduBot release. Generate them with `make freeze`.
+2. **Image** — all three fleet images are built centrally by `make release-dev`
+   (never in an app repo's CI) and pinned by digest on the channel branch.
+3. **Product** — the channel branches: `dev` (rolling, `dev-N`) and `stable`
+   (`vX.Y.Z` tag). `make promote-stable` blesses a dev release into stable
+   without rebuilding.
+
+See [RELEASING.md](RELEASING.md) for the full flow (`make release-dev` /
+`make promote-stable`).
 
 ## Layout
 
@@ -147,13 +155,14 @@ Three layers, no overlap:
 |---|---|
 | `edubot.repos` | public ROS package list (the colcon core, → `./src`) |
 | `edubot.dev.repos` | non-ROS source: firmware + dashboard (→ `./dev`) |
-| `edubot.lock.repos` / `edubot.dev.lock.repos` | pinned commits for a release (`make freeze`) |
+| `channels/dev.json` / `channels/stable.json` | the per-channel release manifest (version, pinned image digests, component versions) — written on the `dev`/`stable` branches |
+| `edubot.lock.repos` / `edubot.dev.lock.repos` | pinned commits for a release (on the channel branches; `make freeze`) |
 | `docker-compose.yaml` | the stack (pulled images + on-robot builds) |
 | `docker-compose.dev.yaml` | dev override — build everything from source |
 | `docker/` | build recipes for the 3 fleet images (`ros2`, `dashboard/`, `flasher/`) + entrypoints |
 | `containers/` | build contexts for the on-robot-built support containers (rviz, dev, web_video_server) |
 | `deploy/` | dashboard config + helpers, mounted at runtime |
-| `scripts/` | `release.sh` (image builds), `update.sh` (update), `ghcr-login.sh` (private images) |
+| `scripts/` | `release-dev.sh` / `promote-stable.sh` (releases), `build-images.sh` (build engine), `update.sh` (on-robot update), `lib.sh`, `ghcr-login.sh` |
 
 Run `make` (no target) for the full command list.
 
