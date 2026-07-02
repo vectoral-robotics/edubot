@@ -1,0 +1,22 @@
+{
+  "channel": "dev",
+  "version": "dev-1",
+  "released_at": "2026-07-02T17:59:42Z",
+  "meta_main_sha": "17128dda827d3c001e51fe5812b8aa57e7d89987",
+  "images": {
+    "edubot-ros2": "ghcr.io/vectoral-robotics/edubot-ros2@sha256:b75263ebf9c9a51dd51369816c5d8c67a21878b62259def7d2f626d23fbdc125",
+    "edubot-dashboard": "ghcr.io/vectoral-robotics/edubot-dashboard@sha256:7f471684538e5575ef392a78919856d49bf4e9c3260fc1857290eea5af0af935",
+    "edubot-flasher": "ghcr.io/vectoral-robotics/edubot-flasher@sha256:fe38feacb3082d8dc3e5c9843be0f6afd8ca4fc5d9f00a80ff546f5b1399d0c6"
+  },
+  "components": {
+    "edubot_bringup": "0.0.2",
+    "edubot_demos": "0.1.0",
+    "edubot_description": "0.0.2",
+    "edubot_hardware": "0.1.1",
+    "edubot_navigation": "0.0.2",
+    "edubot_viz": "0.0.2",
+    "sllidar_ros2": "1.0.1",
+    "edubot_dashboard": "0.3.0",
+    "edubot_firmware": "0.1.0"
+  }
+}

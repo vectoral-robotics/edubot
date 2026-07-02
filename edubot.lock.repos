@@ -1,0 +1,29 @@
+repositories:
+  edubot_bringup:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_bringup.git
+    version: f96813e0ecc7b9dad3af3bf6395aba02b1926ad6
+  edubot_demos:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_demos.git
+    version: d9de3164142eef660ca43fd8f61d5b47cd56e588
+  edubot_description:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_description.git
+    version: 7c2ed3058bedc32b2f5138d3315f0c62e7acc6a6
+  edubot_hardware:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_hardware.git
+    version: 925747fc7ebaeb45d2ca6a0ce39bf4364e64c515
+  edubot_navigation:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_navigation.git
+    version: 07175c549dd046cd0288883c8ee8249250708480
+  edubot_viz:
+    type: git
+    url: https://github.com/vectoral-robotics/edubot_viz.git
+    version: bae2b1132543a4bc116eae7d64c105119503adb1
+  sllidar_ros2:
+    type: git
+    url: https://github.com/Slamtec/sllidar_ros2.git
+    version: 34300099fadfc772965962dec837bf436706188f
