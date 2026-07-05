@@ -35,7 +35,7 @@ fi
 # --- Python dependency ------------------------------------------------------
 if ! python3 -c "import neopixel_spi" 2>/dev/null; then
     echo "[install-boot-leds] installing adafruit-circuitpython-neopixel-spi..."
-    pip3 install --no-cache-dir adafruit-circuitpython-neopixel-spi
+    pip3 install --break-system-packages adafruit-circuitpython-neopixel-spi
 fi
 
 # --- Install script ---------------------------------------------------------
