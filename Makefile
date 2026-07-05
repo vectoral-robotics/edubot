@@ -14,6 +14,7 @@
 #   make flash      (re)flash the ESP32-S3 from source with SKETCH (dev)
 #   make flash-fleet  reflash the ESP32-S3 from the edubot-flasher image (fleet)
 #   make flash-setup  install arduino-cli + the ESP32 core (once per machine)
+#   make enable-spi   enable SPI on the Pi for the corner LEDs (once per robot)
 
 SHELL := /bin/bash
 # Core ROS 2 workspace (colcon) in SRC_DIR; non-ROS source repos (firmware,
@@ -133,3 +134,8 @@ flash-setup: ## Install arduino-cli + the ESP32 core (once per machine)
 		curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh; }
 	arduino-cli core update-index
 	arduino-cli core install esp32:esp32
+
+# ---- Hardware provisioning ------------------------------------------------
+.PHONY: enable-spi
+enable-spi: ## Enable SPI on the Pi for the corner NeoPixels (once per robot; needs sudo + reboot)
+	sudo ./scripts/enable-spi.sh
