@@ -15,6 +15,7 @@
 #   make flash-fleet  reflash the ESP32-S3 from the edubot-flasher image (fleet)
 #   make flash-setup  install arduino-cli + the ESP32 core (once per machine)
 #   make enable-spi   enable SPI on the Pi for the corner LEDs (once per robot)
+#   make install-boot-leds  install boot LED animation as a systemd service (once per robot)
 
 SHELL := /bin/bash
 # Core ROS 2 workspace (colcon) in SRC_DIR; non-ROS source repos (firmware,
@@ -139,3 +140,7 @@ flash-setup: ## Install arduino-cli + the ESP32 core (once per machine)
 .PHONY: enable-spi
 enable-spi: ## Enable SPI on the Pi for the corner NeoPixels (once per robot; needs sudo + reboot)
 	sudo ./scripts/enable-spi.sh
+
+.PHONY: install-boot-leds
+install-boot-leds: ## Install boot LED animation as systemd service (once per robot; after enable-spi + reboot)
+	sudo ./scripts/install-boot-leds.sh

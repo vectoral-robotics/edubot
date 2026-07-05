@@ -67,6 +67,13 @@ source "${EDUBOT_WS:-/edubot_ws}/install/setup.bash"
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 # Main bringup. RViz defaults to false and runs in its own container.
+# If LEDs are enabled: signal the host boot animation (edubot-leds-boot.service)
+# to release the SPI bus by creating the handoff flag, then wait briefly for a
+# clean exit before led_node opens the same bus.
+if [ "${ENABLE_LEDS}" = "true" ]; then
+  touch /dev/edubot-leds-stop 2>/dev/null || true
+  sleep 0.5
+fi
 ros2 launch edubot_bringup bringup.launch.py use_sim:="${USE_SIM}" use_rviz:="${USE_RVIZ}" use_leds:="${ENABLE_LEDS}" &
 
 if [ "${ENABLE_TELEOP}" = "true" ]; then
