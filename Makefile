@@ -42,6 +42,12 @@ help:
 # ---- Source management (vcstool) ------------------------------------------
 .PHONY: src
 src: ## Import ROS packages into ./src and dev repos into ./dev
+	@command -v vcs >/dev/null 2>&1 || { \
+		echo "[edubot] vcstool not found — installing..."; \
+		sudo apt-get install -y python3-vcstool 2>/dev/null \
+		|| pip3 install --break-system-packages vcstool \
+		|| { echo "[edubot] ERROR: could not install vcstool. Try: sudo apt-get install python3-vcstool"; exit 1; }; \
+	}
 	@mkdir -p $(SRC_DIR) $(DEV_DIR)
 	vcs import $(SRC_DIR) < edubot.repos
 	vcs import $(DEV_DIR) < edubot.dev.repos
