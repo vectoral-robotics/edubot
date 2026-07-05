@@ -29,6 +29,7 @@ services:
       - USE_RVIZ=${USE_RVIZ:-false}
       - ENABLE_TELEOP=${ENABLE_TELEOP:-true}
       - ENABLE_LIDAR=${ENABLE_LIDAR:-false}
+      - ENABLE_LEDS=${ENABLE_LEDS:-true}
       - ENABLE_CAMERA=${ENABLE_CAMERA:-auto}
       - CAMERA_DRIVER=${CAMERA_DRIVER:-cam2image}
     command: /run.sh

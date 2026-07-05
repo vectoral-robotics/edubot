@@ -11,6 +11,7 @@ USE_SIM=${USE_SIM:-true}
 USE_RVIZ=${USE_RVIZ:-false}
 ENABLE_TELEOP=${ENABLE_TELEOP:-true}
 ENABLE_LIDAR=${ENABLE_LIDAR:-false}
+ENABLE_LEDS=${ENABLE_LEDS:-true}
 ENABLE_CAMERA=${ENABLE_CAMERA:-auto}
 CAMERA_DRIVER=${CAMERA_DRIVER:-v4l2_camera}
 CAMERA_DEVICE=${CAMERA_DEVICE:-}
@@ -66,7 +67,7 @@ source "${EDUBOT_WS:-/edubot_ws}/install/setup.bash"
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 # Main bringup. RViz defaults to false and runs in its own container.
-ros2 launch edubot_bringup bringup.launch.py use_sim:="${USE_SIM}" use_rviz:="${USE_RVIZ}" &
+ros2 launch edubot_bringup bringup.launch.py use_sim:="${USE_SIM}" use_rviz:="${USE_RVIZ}" use_leds:="${ENABLE_LEDS}" &
 
 if [ "${ENABLE_TELEOP}" = "true" ]; then
   ros2 launch edubot_bringup teleop.launch.py &
