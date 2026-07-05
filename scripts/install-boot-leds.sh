@@ -34,8 +34,10 @@ fi
 
 # --- Python dependency ------------------------------------------------------
 if ! python3 -c "import neopixel_spi" 2>/dev/null; then
-    echo "[install-boot-leds] installing adafruit-circuitpython-neopixel-spi..."
-    pip3 install --break-system-packages adafruit-circuitpython-neopixel-spi
+    echo "[install-boot-leds] installing lgpio + adafruit-circuitpython-neopixel-spi..."
+    # Must install as root (sudo pip3) so that 'sudo python3 boot-leds.py' and
+    # the systemd service (which runs as root) can import the packages.
+    pip3 install --break-system-packages lgpio adafruit-circuitpython-neopixel-spi
 fi
 
 # --- Install script ---------------------------------------------------------
