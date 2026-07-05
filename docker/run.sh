@@ -72,7 +72,13 @@ export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 # clean exit before led_node opens the same bus.
 if [ "${ENABLE_LEDS}" = "true" ]; then
   touch /dev/edubot-leds-stop 2>/dev/null || true
-  sleep 0.5
+  # Wait until boot-leds.py confirms a clean exit by removing the flag (it
+  # does so in its finally block after clearing the pixels and releasing SPI).
+  # Timeout 2s in 100ms steps so led_node never races for the bus.
+  for _i in $(seq 20); do
+    [ ! -e /dev/edubot-leds-stop ] && break
+    sleep 0.1
+  done
 fi
 ros2 launch edubot_bringup bringup.launch.py use_sim:="${USE_SIM}" use_rviz:="${USE_RVIZ}" use_leds:="${ENABLE_LEDS}" &
 
