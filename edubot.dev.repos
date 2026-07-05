@@ -12,11 +12,11 @@
 repositories:
   edubot_firmware:
     type: git
-    url: https://github.com/vectoral-robotics/edubot_firmware.git
+    url: git@github.com:vectoral-robotics/edubot_firmware.git
     version: main
   # The dashboard app source — so a dev can build the dashboard image locally
   # (docker-compose.dev.yaml) instead of pulling it. Not a ROS package.
   edubot_dashboard:
     type: git
-    url: https://github.com/vectoral-robotics/edubot_dashboard.git
+    url: git@github.com:vectoral-robotics/edubot_dashboard.git
     version: main

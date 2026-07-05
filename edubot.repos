@@ -10,27 +10,27 @@
 repositories:
   edubot_hardware:
     type: git
-    url: https://github.com/vectoral-robotics/edubot_hardware.git
+    url: git@github.com:vectoral-robotics/edubot_hardware.git
     version: main
   edubot_bringup:
     type: git
-    url: https://github.com/vectoral-robotics/edubot_bringup.git
+    url: git@github.com:vectoral-robotics/edubot_bringup.git
     version: main
   edubot_description:
     type: git
-    url: https://github.com/vectoral-robotics/edubot_description.git
+    url: git@github.com:vectoral-robotics/edubot_description.git
     version: main
   edubot_navigation:
     type: git
-    url: https://github.com/vectoral-robotics/edubot_navigation.git
+    url: git@github.com:vectoral-robotics/edubot_navigation.git
     version: main
   edubot_viz:
     type: git
-    url: https://github.com/vectoral-robotics/edubot_viz.git
+    url: git@github.com:vectoral-robotics/edubot_viz.git
     version: main
   edubot_demos:
     type: git
-    url: https://github.com/vectoral-robotics/edubot_demos.git
+    url: git@github.com:vectoral-robotics/edubot_demos.git
     version: main
   # Third-party LiDAR driver. TODO: pin to a specific tag in edubot.lock.repos
   # for reproducibility (currently tracks the upstream default branch).
