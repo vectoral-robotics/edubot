@@ -2,6 +2,22 @@ ui:
   eyebrow: Edubot Workspace
   title: Robot Dashboard
   subtitle: Launch services and access system tools on the LAN.
+# Robot profile: which feature panels are enabled and the robot's ROS interface.
+# One profile per robot — flip a feature off to hide its panel; another robot is
+# just another profile (see the dashboard's ADR 0001).
+features:
+  teleop: true
+  navigation: true
+  kinematics: true
+  vibe: true
+  blockly: true
+  settings: true
+robot:
+  name: EduBot
+  cmdVelTopic: /cmd_vel
+  imageTopic: /image
+  maxLinearSpeed: 0.45
+  maxAngularSpeed: 1.9
 menu:
   items:
     - id: settings
