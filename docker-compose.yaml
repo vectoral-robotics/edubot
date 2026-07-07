@@ -64,31 +64,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /dev:/dev
 
-  rviz:
-    build:
-      context: .
-      dockerfile: containers/rviz/Dockerfile
-    container_name: edubot_rviz
-    network_mode: host
-    ipc: host
-    privileged: true
-    restart: "no"
-    environment:
-      - WEB_PORT=14500
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - RVIZ_RENDER_MODE=${RVIZ_RENDER_MODE:-software}
-    deploy:
-      resources:
-        limits:
-          cpus: "1.5"
-          memory: 768M
-    volumes:
-      - ${EDUBOT_WORKSPACE_DIR:-/edubot_ws}:/workspace
-      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
-      - edubot_state:/state
-      - edubot_settings:/settings
-      - /dev:/dev
-
   portainer:
     image: portainer/portainer-ce:latest
     container_name: edubot_portainer

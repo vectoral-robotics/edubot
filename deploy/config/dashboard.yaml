@@ -12,10 +12,6 @@ menu:
       label: Kinematics Lab
       type: link
       href: /kinematics.html
-    - id: viewer
-      label: Viewer
-      type: link
-      href: /navigation.html
     - id: vibe
       label: Vibe Coding
       type: link
@@ -58,14 +54,11 @@ services:
     url: http://{host}:9000
     autostart: false
     description: Docker management UI (LAN).
-  - id: rviz
-    name: RViz Web
-    type: compose
-    serviceName: rviz
-    containerName: edubot_rviz
-    url: http://{host}:14500/index.html?username=root&keyboard=0&floating_menu=1&autohide=1&xpramenu=0&open_windows=0&keyboard_button=0&clipboard_button=0&sound_button=0&cursor_lock_button=0
-    autostart: false
-    description: RViz in the browser via XPRA HTML5 (auto-resize).
+  - id: foxglove
+    name: Foxglove
+    type: link
+    url: https://app.foxglove.dev/?ds=rosbridge-websocket&ds.url=ws://{host}:9090
+    description: Visualize ROS topics (3D, plots, camera) — opens in browser, no install needed.
   - id: web_video_server
     name: Web Video Server
     type: compose
