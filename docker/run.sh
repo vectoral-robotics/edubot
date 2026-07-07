@@ -8,7 +8,6 @@
 set -Ee
 
 USE_SIM=${USE_SIM:-true}
-USE_RVIZ=${USE_RVIZ:-false}
 ENABLE_TELEOP=${ENABLE_TELEOP:-true}
 ENABLE_LIDAR=${ENABLE_LIDAR:-false}
 ENABLE_LEDS=${ENABLE_LEDS:-true}
@@ -66,7 +65,7 @@ source "${EDUBOT_WS:-/edubot_ws}/install/setup.bash"
 
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-# Main bringup. RViz defaults to false and runs in its own container.
+# Main bringup. Visualization is handled by Foxglove (browser, no container needed).
 # If LEDs are enabled: signal the host boot animation (edubot-leds-boot.service)
 # to release the SPI bus by creating the handoff flag, then wait briefly for a
 # clean exit before led_node opens the same bus.
@@ -80,7 +79,7 @@ if [ "${ENABLE_LEDS}" = "true" ]; then
     sleep 0.1
   done
 fi
-ros2 launch edubot_bringup bringup.launch.py use_sim:="${USE_SIM}" use_rviz:="${USE_RVIZ}" use_leds:="${ENABLE_LEDS}" &
+ros2 launch edubot_bringup bringup.launch.py use_sim:="${USE_SIM}" use_leds:="${ENABLE_LEDS}" &
 
 if [ "${ENABLE_TELEOP}" = "true" ]; then
   ros2 launch edubot_bringup teleop.launch.py &

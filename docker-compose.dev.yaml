@@ -8,7 +8,7 @@
 #   - edubot (ros2)  -> docker/ros2.dev.Dockerfile   (live from ./src)
 #   - dashboard      -> docker/dashboard/Dockerfile  (source: ./dev/edubot_dashboard)
 #   - flasher        -> docker/flasher/Dockerfile    (source: ./dev/edubot_firmware, profile "flash")
-# rviz / dev / web_video_server already build from this repo in the base file.
+# dev / web_video_server already build from this repo in the base file.
 #
 # These use the same recipes as the pushed fleet images (scripts/release.sh); the
 # only dev-specific one is the ros2 image, which mounts ./src instead of baking it.
