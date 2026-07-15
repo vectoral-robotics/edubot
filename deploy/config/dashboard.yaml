@@ -7,7 +7,9 @@ ui:
 # just another profile (see the dashboard's ADR 0001).
 features:
   teleop: true
-  navigation: true
+  # Viewer (3D navigation) disabled for now: code is kept in the dashboard, just
+  # hidden from the sidebar and its route guarded. Flip to true to bring it back.
+  navigation: false
   kinematics: true
   vibe: true
   blockly: true
