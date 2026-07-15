@@ -2,28 +2,24 @@ ui:
   eyebrow: Edubot Workspace
   title: Robot Dashboard
   subtitle: Launch services and access system tools on the LAN.
-menu:
-  items:
-    - id: settings
-      label: Settings
-      type: link
-      href: /settings.html
-    - id: kinematics
-      label: Kinematics Lab
-      type: link
-      href: /kinematics.html
-    - id: vibe
-      label: Vibe Coding
-      type: link
-      href: /vibe.html
-    - id: blockly
-      label: Blockly
-      type: link
-      href: /blockly.html
-    - id: reboot
-      label: Reboot Host
-      type: hostAction
-      actionId: reboot
+# Robot profile: which feature panels are enabled and the robot's ROS interface.
+# One profile per robot — flip a feature off to hide its panel; another robot is
+# just another profile (see the dashboard's ADR 001).
+features:
+  teleop: true
+  # Viewer (3D navigation) disabled for now: code is kept in the dashboard, just
+  # hidden from the sidebar and its route guarded. Flip to true to bring it back.
+  navigation: false
+  kinematics: true
+  vibe: true
+  blockly: true
+  settings: true
+robot:
+  name: EduBot
+  cmdVelTopic: /cmd_vel
+  imageTopic: /image
+  maxLinearSpeed: 0.45
+  maxAngularSpeed: 1.9
 hostActions:
   - id: reboot
     label: Reboot Host

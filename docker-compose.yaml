@@ -126,7 +126,9 @@ services:
       - COMPOSE_FILE=/edubot/docker-compose.yaml
       - COMPOSE_PROJECT_NAME=edubot
       - COMPOSE_PROJECT_DIRECTORY=/edubot
-      - DASHBOARD_PORT=8080
+      # Served on port 80 so the dashboard is reachable at just the hostname
+      # (http://<robot>). Host networking + privileged lets the container bind 80.
+      - DASHBOARD_PORT=80
       - DOCKER_API_VERSION=1.44
       - DASHBOARD_CONFIG=/edubot/deploy/config/dashboard.yaml
       - DASHBOARD_USER_APPS=/state/dashboard/user-apps.json
