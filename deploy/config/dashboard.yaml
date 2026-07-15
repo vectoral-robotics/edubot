@@ -58,7 +58,7 @@ services:
     name: Foxglove
     type: link
     url: https://app.foxglove.dev/?ds=rosbridge-websocket&ds.url=ws://{host}:9090
-    description: Visualize ROS topics (3D, plots, camera) — opens in browser, no install needed.
+    description: Visualize ROS topics (3D, plots, camera) in the browser. If the browser blocks the insecure ws:// connection (mixed content), use the Foxglove desktop app with the same ws://<robot-ip>:9090.
   - id: web_video_server
     name: Web Video Server
     type: compose
