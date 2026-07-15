@@ -32,7 +32,7 @@ robot; otherwise it is built on the robot from this repo.**
 | `edubot` (ROS 2 core) | pulled image | reproducible from the lockfile; avoids recompiling all of ROS per robot |
 | `dashboard` | pulled image | its source lives in `edubot_dashboard`, not on the robot |
 | `flasher` | pulled image | firmware source is private, not on the robot |
-| `rviz`, `dev` (code-server), `web_video_server` | **built on the robot** | need only public ROS sources, whose contexts live here |
+| `dev` (code-server), `web_video_server` | **built on the robot** | need only public ROS sources, whose contexts live here |
 | `node_red`, `portainer` | upstream image | third-party tools (optional, `autostart: false`) |
 
 A **developer** overrides this and builds *everything* from source (below).
@@ -47,7 +47,7 @@ make dev        # builds the WHOLE stack from local source and runs it
 ```
 
 `make dev` pulls nothing EduBot-specific — it builds `edubot` (from `./src`),
-`dashboard` (from `./dev/edubot_dashboard`), plus `rviz`/`dev`/`web_video_server`
+`dashboard` (from `./dev/edubot_dashboard`), plus `dev`/`web_video_server`
 from this repo. Only `node_red`/`portainer` (third-party, optional) are images.
 
 The **first** `make dev` runs a full colcon build (a few minutes). Watch it with
@@ -59,7 +59,7 @@ dashboard and video connect once the ROS core is up. Then open the dashboard at
 |---|---|
 | Dashboard | `http://<robot-ip>:8080` |
 | Code Server (`dev`) | `https://<robot-ip>:8443` |
-| RViz (web) | `http://<robot-ip>:14500` |
+| Foxglove | hosted app, connects to `ws://<robot-ip>:9090` (rosbridge) |
 | Web Video | `http://<robot-ip>:8081` |
 | Node-RED | `http://<robot-ip>:1880` |
 | Portainer | `http://<robot-ip>:9000` |
@@ -160,7 +160,7 @@ See [RELEASING.md](RELEASING.md) for the full flow (`make release-dev` /
 | `docker-compose.yaml` | the stack (pulled images + on-robot builds) |
 | `docker-compose.dev.yaml` | dev override — build everything from source |
 | `docker/` | build recipes for the 3 fleet images (`ros2`, `dashboard/`, `flasher/`) + entrypoints |
-| `containers/` | build contexts for the on-robot-built support containers (rviz, dev, web_video_server) |
+| `containers/` | build contexts for the on-robot-built support containers (dev, web_video_server) |
 | `deploy/` | dashboard config + helpers, mounted at runtime |
 | `scripts/` | `release-dev.sh` / `promote-stable.sh` (releases), `build-images.sh` (build engine), `update.sh` (on-robot update), `lib.sh`, `ghcr-login.sh` |
 
