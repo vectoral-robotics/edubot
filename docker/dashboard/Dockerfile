@@ -11,7 +11,7 @@
 # the built SPA assets.
 
 # ---- build stage: bundle the server + build the web SPA --------------------
-FROM node:20-bookworm AS build
+FROM node:22-bookworm AS build
 ENV PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -24,7 +24,7 @@ RUN pnpm --filter @edubot/dashboard-shared build \
  && pnpm --filter @edubot/dashboard-web build
 
 # ---- runtime stage ---------------------------------------------------------
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
