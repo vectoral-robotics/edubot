@@ -3,7 +3,7 @@
 # This is what a delivered robot runs. The robot clones THIS meta-repo (bind-
 # mounted as /edubot). Pulled images: edubot (ros2, reproducible from lockfile),
 # dashboard and flasher (their source is not on the robot). Built on the robot
-# from this repo: dev/code-server, rviz, web_video_server (public ROS sources
+# from this repo: dev/code-server, web_video_server (public ROS sources
 # only). Same mounts/config as the old dashboard workspace compose — the
 # dashboard is just one container and reads its config from the mounted /edubot.
 #
@@ -26,9 +26,9 @@ services:
     environment:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - USE_SIM=${USE_SIM:-true}
-      - USE_RVIZ=${USE_RVIZ:-false}
       - ENABLE_TELEOP=${ENABLE_TELEOP:-true}
       - ENABLE_LIDAR=${ENABLE_LIDAR:-false}
+      - ENABLE_LEDS=${ENABLE_LEDS:-true}
       - ENABLE_CAMERA=${ENABLE_CAMERA:-auto}
       - CAMERA_DRIVER=${CAMERA_DRIVER:-cam2image}
     command: /run.sh
@@ -39,7 +39,7 @@ services:
       - edubot_settings:/settings
       - /dev:/dev
 
-  # Support containers (dev/code-server, rviz, web_video_server) build on the
+  # Support containers (dev/code-server, web_video_server) build on the
   # robot from this repo — they only need public ROS packages, so no registry
   # image is warranted. The reproducibility-critical / private-source services
   # (edubot, dashboard, flasher) are pulled as images.
@@ -61,31 +61,6 @@ services:
       - edubot_state:/state
       - edubot_settings:/settings
       - /var/run/docker.sock:/var/run/docker.sock
-      - /dev:/dev
-
-  rviz:
-    build:
-      context: .
-      dockerfile: containers/rviz/Dockerfile
-    container_name: edubot_rviz
-    network_mode: host
-    ipc: host
-    privileged: true
-    restart: "no"
-    environment:
-      - WEB_PORT=14500
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - RVIZ_RENDER_MODE=${RVIZ_RENDER_MODE:-software}
-    deploy:
-      resources:
-        limits:
-          cpus: "1.5"
-          memory: 768M
-    volumes:
-      - ${EDUBOT_WORKSPACE_DIR:-/edubot_ws}:/workspace
-      - ${EDUBOT_PROJECT_DIR:-${PWD}}:/edubot
-      - edubot_state:/state
-      - edubot_settings:/settings
       - /dev:/dev
 
   portainer:
@@ -158,7 +133,7 @@ services:
       - DASHBOARD_STATE=/state/dashboard/dashboard-state.json
       - DASHBOARD_SETTINGS_DIR=/settings/dashboard
       - DASHBOARD_ROS_SETTINGS=/settings/ros/ros.env
-      - DASHBOARD_ROS_SETTINGS_SERVICE_IDS=edubot,rviz,web_video_server,node_red,dev
+      - DASHBOARD_ROS_SETTINGS_SERVICE_IDS=edubot,web_video_server,node_red,dev
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4.1-mini}
       - DASHBOARD_VIBE_SKILL=/edubot/deploy/config/vibe-robot-skill.md

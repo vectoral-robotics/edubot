@@ -14,6 +14,8 @@
 #   make flash      (re)flash the ESP32-S3 from source with SKETCH (dev)
 #   make flash-fleet  reflash the ESP32-S3 from the edubot-flasher image (fleet)
 #   make flash-setup  install arduino-cli + the ESP32 core (once per machine)
+#   make enable-spi   enable SPI on the Pi for the corner LEDs (once per robot)
+#   make install-boot-leds  install boot LED animation as a systemd service (once per robot)
 
 SHELL := /bin/bash
 # Core ROS 2 workspace (colcon) in SRC_DIR; non-ROS source repos (firmware,
@@ -40,7 +42,15 @@ help:
 # ---- Source management (vcstool) ------------------------------------------
 .PHONY: src
 src: ## Import ROS packages into ./src and dev repos into ./dev
+	@command -v vcs >/dev/null 2>&1 || { \
+		echo "[edubot] vcstool not found — installing..."; \
+		sudo apt-get install -y python3-vcstool 2>/dev/null \
+		|| pip3 install --break-system-packages vcstool \
+		|| { echo "[edubot] ERROR: could not install vcstool. Try: sudo apt-get install python3-vcstool"; exit 1; }; \
+	}
 	@mkdir -p $(SRC_DIR) $(DEV_DIR)
+	# No --force: import skips repos that are already checked out, so local work
+	# in src/ or dev/ is never discarded. Use 'make pull-src' to update them.
 	vcs import $(SRC_DIR) < edubot.repos
 	vcs import $(DEV_DIR) < edubot.dev.repos
 	@echo "[edubot] src/ (ROS core) + dev/ (firmware) ready — full git checkouts."
@@ -133,3 +143,12 @@ flash-setup: ## Install arduino-cli + the ESP32 core (once per machine)
 		curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh; }
 	arduino-cli core update-index
 	arduino-cli core install esp32:esp32
+
+# ---- Hardware provisioning ------------------------------------------------
+.PHONY: enable-spi
+enable-spi: ## Enable SPI on the Pi for the corner NeoPixels (once per robot; needs sudo + reboot)
+	sudo ./scripts/enable-spi.sh
+
+.PHONY: install-boot-leds
+install-boot-leds: ## Install boot LED animation as systemd service (once per robot; after enable-spi + reboot)
+	sudo ./scripts/install-boot-leds.sh

@@ -68,7 +68,7 @@ fi
 
 echo "[update] pulling images and (re)building on-robot containers..."
 # Pulled images (edubot/dashboard/flasher) refresh; the on-robot-built ones
-# (dev/rviz/web_video_server) rebuild.
+# (dev/web_video_server) rebuild.
 env "${img_env[@]}" EDUBOT_CHANNEL="$CHANNEL" \
   docker compose -f "$COMPOSE_FILE" up -d --build --pull always
 

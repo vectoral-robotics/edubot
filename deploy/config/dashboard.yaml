@@ -4,7 +4,7 @@ ui:
   subtitle: Launch services and access system tools on the LAN.
 # Robot profile: which feature panels are enabled and the robot's ROS interface.
 # One profile per robot — flip a feature off to hide its panel; another robot is
-# just another profile (see the dashboard's ADR 0001).
+# just another profile (see the dashboard's ADR 001).
 features:
   teleop: true
   # Viewer (3D navigation) disabled for now: code is kept in the dashboard, just
@@ -50,14 +50,11 @@ services:
     url: http://{host}:9000
     autostart: false
     description: Docker management UI (LAN).
-  - id: rviz
-    name: RViz Web
-    type: compose
-    serviceName: rviz
-    containerName: edubot_rviz
-    url: http://{host}:14500/index.html?username=root&keyboard=0&floating_menu=1&autohide=1&xpramenu=0&open_windows=0&keyboard_button=0&clipboard_button=0&sound_button=0&cursor_lock_button=0
-    autostart: false
-    description: RViz in the browser via XPRA HTML5 (auto-resize).
+  - id: foxglove
+    name: Foxglove
+    type: link
+    url: https://app.foxglove.dev/?ds=rosbridge-websocket&ds.url=ws://{host}:9090
+    description: Visualize ROS topics (3D, plots, camera) in the browser. If the browser blocks the insecure ws:// connection (mixed content), use the Foxglove desktop app with the same ws://<robot-ip>:9090.
   - id: web_video_server
     name: Web Video Server
     type: compose

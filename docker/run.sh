@@ -8,9 +8,9 @@
 set -Ee
 
 USE_SIM=${USE_SIM:-true}
-USE_RVIZ=${USE_RVIZ:-false}
 ENABLE_TELEOP=${ENABLE_TELEOP:-true}
 ENABLE_LIDAR=${ENABLE_LIDAR:-false}
+ENABLE_LEDS=${ENABLE_LEDS:-true}
 ENABLE_CAMERA=${ENABLE_CAMERA:-auto}
 CAMERA_DRIVER=${CAMERA_DRIVER:-v4l2_camera}
 CAMERA_DEVICE=${CAMERA_DEVICE:-}
@@ -65,8 +65,21 @@ source "${EDUBOT_WS:-/edubot_ws}/install/setup.bash"
 
 export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-# Main bringup. RViz defaults to false and runs in its own container.
-ros2 launch edubot_bringup bringup.launch.py use_sim:="${USE_SIM}" use_rviz:="${USE_RVIZ}" &
+# Main bringup. Visualization is handled by Foxglove (browser, no container needed).
+# If LEDs are enabled: signal the host boot animation (edubot-leds-boot.service)
+# to release the SPI bus by creating the handoff flag, then wait briefly for a
+# clean exit before led_node opens the same bus.
+if [ "${ENABLE_LEDS}" = "true" ]; then
+  touch /dev/edubot-leds-stop 2>/dev/null || true
+  # Wait until boot-leds.py confirms a clean exit by removing the flag (it
+  # does so in its finally block after clearing the pixels and releasing SPI).
+  # Timeout 2s in 100ms steps so led_node never races for the bus.
+  for _i in $(seq 20); do
+    [ ! -e /dev/edubot-leds-stop ] && break
+    sleep 0.1
+  done
+fi
+ros2 launch edubot_bringup bringup.launch.py use_sim:="${USE_SIM}" use_leds:="${ENABLE_LEDS}" &
 
 if [ "${ENABLE_TELEOP}" = "true" ]; then
   ros2 launch edubot_bringup teleop.launch.py &
