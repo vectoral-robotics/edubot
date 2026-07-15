@@ -20,32 +20,6 @@ robot:
   imageTopic: /image
   maxLinearSpeed: 0.45
   maxAngularSpeed: 1.9
-menu:
-  items:
-    - id: settings
-      label: Settings
-      type: link
-      href: /settings.html
-    - id: kinematics
-      label: Kinematics Lab
-      type: link
-      href: /kinematics.html
-    - id: viewer
-      label: Viewer
-      type: link
-      href: /navigation.html
-    - id: vibe
-      label: Vibe Coding
-      type: link
-      href: /vibe.html
-    - id: blockly
-      label: Blockly
-      type: link
-      href: /blockly.html
-    - id: reboot
-      label: Reboot Host
-      type: hostAction
-      actionId: reboot
 hostActions:
   - id: reboot
     label: Reboot Host
