@@ -49,8 +49,10 @@ src: ## Import ROS packages into ./src and dev repos into ./dev
 		|| { echo "[edubot] ERROR: could not install vcstool. Try: sudo apt-get install python3-vcstool"; exit 1; }; \
 	}
 	@mkdir -p $(SRC_DIR) $(DEV_DIR)
-	vcs import --force $(SRC_DIR) < edubot.repos
-	vcs import --force $(DEV_DIR) < edubot.dev.repos
+	# No --force: import skips repos that are already checked out, so local work
+	# in src/ or dev/ is never discarded. Use 'make pull-src' to update them.
+	vcs import $(SRC_DIR) < edubot.repos
+	vcs import $(DEV_DIR) < edubot.dev.repos
 	@echo "[edubot] src/ (ROS core) + dev/ (firmware) ready — full git checkouts."
 
 .PHONY: status
