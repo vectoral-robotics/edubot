@@ -1,7 +1,7 @@
 ui:
-  eyebrow: Edubot Workspace
-  title: Robot Dashboard
-  subtitle: Launch services and access system tools on the LAN.
+  eyebrow: Vectoral EduBot
+  title: Dashboard
+  subtitle: Monitor and control your robot.
 # Robot profile: which feature panels are enabled and the robot's ROS interface.
 # One profile per robot — flip a feature off to hide its panel; another robot is
 # just another profile (see the dashboard's ADR 001).
@@ -33,28 +33,7 @@ services:
     serviceName: edubot
     containerName: edubot_ros2
     autostart: true
-    description: Runtime container with your ROS2 stack.
-  - id: dev
-    name: Code Server
-    type: compose
-    serviceName: dev
-    containerName: edubot_dev
-    url: https://{host}:8443
-    autostart: false
-    description: Develop ROS2 + ESP32 directly in the browser. Docker controlled.
-  - id: portainer
-    name: Portainer
-    type: compose
-    serviceName: portainer
-    containerName: edubot_portainer
-    url: http://{host}:9000
-    autostart: false
-    description: Docker management UI (LAN).
-  - id: foxglove
-    name: Foxglove
-    type: link
-    url: https://app.foxglove.dev/?ds=rosbridge-websocket&ds.url=ws://{host}:9090
-    description: Visualize ROS topics (3D, plots, camera) in the browser. If the browser blocks the insecure ws:// connection (mixed content), use the Foxglove desktop app with the same ws://<robot-ip>:9090.
+    description: ROS 2 runtime (drivers, control, sensors)
   - id: web_video_server
     name: Web Video Server
     type: compose
@@ -62,7 +41,23 @@ services:
     containerName: edubot_web_video_server
     url: http://{host}:8081
     autostart: false
-    description: ROS video streams for browser clients.
+    description: Camera stream
+  - id: dev
+    name: Code Server
+    type: compose
+    serviceName: dev
+    containerName: edubot_dev
+    url: https://{host}:8443
+    autostart: false
+    description: Browser-based VS Code
+  - id: portainer
+    name: Portainer
+    type: compose
+    serviceName: portainer
+    containerName: edubot_portainer
+    url: http://{host}:9000
+    autostart: false
+    description: Docker container management
   - id: node_red
     name: Node-RED
     type: compose
@@ -70,4 +65,10 @@ services:
     containerName: edubot_node_red
     url: http://{host}:1880
     autostart: false
-    description: Low-code automation and ROS integrations.
+    description: Low-code automation flows
+  # External service (opens in a new tab) — kept last, after the containers.
+  - id: foxglove
+    name: Foxglove
+    type: link
+    url: https://app.foxglove.dev/?ds=rosbridge-websocket&ds.url=ws://{host}:9090
+    description: ROS2 visualization
