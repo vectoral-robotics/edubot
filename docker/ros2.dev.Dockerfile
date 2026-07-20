@@ -28,8 +28,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 # Runtime Python deps (see ros2.Dockerfile for details):
-#  pyserial/numpy for the ESP32 bridge, adafruit neopixel-spi for the corner LEDs.
-RUN pip3 install --no-cache-dir pyserial numpy lgpio adafruit-circuitpython-neopixel-spi
+#  pyserial/numpy for the ESP32 bridge, adafruit neopixel-spi for the corner LEDs,
+#  adafruit-circuitpython-bno08x for the BNO085 IMU node.
+RUN pip3 install --no-cache-dir pyserial numpy lgpio adafruit-circuitpython-neopixel-spi adafruit-circuitpython-bno08x
 
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc && \
     echo "if [ -f /workspace/install/setup.bash ]; then source /workspace/install/setup.bash; fi" >> /root/.bashrc
