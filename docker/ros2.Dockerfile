@@ -33,7 +33,9 @@ RUN pip3 install --no-cache-dir -U vcstool
 #  - adafruit-circuitpython-neopixel-spi: corner status LEDs (led_node). Driven
 #    over SPI (not PIO) so it works on the Raspberry Pi 5 / Ubuntu 24.04; needs
 #    'dtparam=spi=on' on the host and /dev mapped into the (privileged) container.
-RUN pip3 install --no-cache-dir pyserial numpy lgpio adafruit-circuitpython-neopixel-spi
+#  - adafruit-circuitpython-bno08x: BNO085 IMU node (imu_node). Needs I2C
+#    enabled on the host ('dtparam=i2c_arm=on') and /dev/i2c-1 accessible.
+RUN pip3 install --no-cache-dir pyserial numpy lgpio adafruit-circuitpython-neopixel-spi adafruit-circuitpython-bno08x
 
 WORKDIR /edubot_ws
 
