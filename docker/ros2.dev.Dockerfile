@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-joint-state-publisher-gui \
     ros-humble-xacro \
     ros-humble-robot-state-publisher \
+    ros-humble-robot-localization \
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \
     ros-humble-v4l2-camera \
